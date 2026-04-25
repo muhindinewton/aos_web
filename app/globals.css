@@ -47,15 +47,77 @@ html, body {
 ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
 
 @layer utilities {
-  .text-theme-primary { color: var(--text-primary); }
+  /* Text */
+  .text-theme-primary   { color: var(--text-primary); }
   .text-theme-secondary { color: var(--text-secondary); }
-  .text-theme-muted { color: var(--text-muted); }
-  .bg-theme { background-color: var(--bg); }
-  .bg-surface { background-color: var(--surface); }
-  .bg-elevated { background-color: var(--elevated); }
-  .border-theme { border-color: var(--border); }
-  .ring-theme { --tw-ring-color: var(--border); }
+  .text-theme-muted     { color: var(--text-muted); }
+  .text-theme-inverted  { color: #ffffff; }
 
+  /* Backgrounds */
+  .bg-theme          { background-color: var(--bg); }
+  .bg-surface        { background-color: var(--surface); }
+  .bg-elevated       { background-color: var(--elevated); }
+  .bg-theme-primary  { background-color: var(--primary); }
+  .bg-theme-surface  { background-color: var(--surface); }
+  .bg-theme-elevated { background-color: var(--elevated); }
+
+  /* Borders */
+  .border-theme      { border-color: var(--border); }
+  .border-theme-border { border-color: var(--border); }
+  .ring-theme        { --tw-ring-color: var(--border); }
+
+  /* Scrollbar */
   .hide-scrollbar::-webkit-scrollbar { display: none; }
   .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  .animate-slide-down {
+    animation: slideDown 0.3s ease-out;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  70% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-bounce-in {
+  animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out;
 }

@@ -23,6 +23,9 @@ module.exports = {
         elevated: '0 4px 16px rgba(0,0,0,0.12)',
         nav: '0 -1px 3px rgba(0,0,0,0.08)',
       },
+      animation: {
+        'spin-slow': 'spin 4s linear infinite',
+      },
     },
   },
   plugins: [],

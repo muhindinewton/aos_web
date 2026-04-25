@@ -119,7 +119,7 @@ export const products: Product[] = [
     isOffer: true,
     discount: 21,
     offerExpiry: 7,
-    description: '3+2+1 seater genuine leather sofa set. Free delivery.',
+    description: '3+2+1 seater genuine leather sofa set. Available for pickup or negotiate with seller.',
     seller: { id: '5', name: 'Furniture Palace', avatar: 'F', rating: 4.5, verified: true },
   },
   {
@@ -320,12 +320,12 @@ export const chats: Chat[] = [
     name: 'Furniture Palace',
     avatar: 'F',
     online: true,
-    lastMessage: 'We offer free delivery in Nairobi',
+    lastMessage: 'Feel free to negotiate the price',
     timestamp: '3h ago',
     unread: 1,
     messages: [
-      { id: '1', sender: 'user', text: 'Do you deliver to Karen?', timestamp: '8:00 AM' },
-      { id: '2', sender: 'other', text: 'We offer free delivery in Nairobi', timestamp: '8:15 AM' },
+      { id: '1', sender: 'user', text: 'Is the price negotiable?', timestamp: '8:00 AM' },
+      { id: '2', sender: 'other', text: 'Feel free to negotiate the price', timestamp: '8:15 AM' },
     ],
   },
 ];
@@ -392,11 +392,11 @@ export const bannerSlides = [
   },
   {
     id: 2,
-    title: 'Free Delivery',
-    subtitle: 'In Major Cities',
-    description: 'On all orders above Ksh 5,000',
+    title: 'Secure Payments',
+    subtitle: 'Safe & Protected',
+    description: 'Pay safely with buyer protection on every order',
     gradient: 'from-blue-600 to-blue-400',
-    icon: 'Truck',
+    icon: 'Shield',
   },
   {
     id: 3,

@@ -2,14 +2,17 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Search, X, TrendingUp } from 'lucide-react';
+import { Search, X, TrendingUp, Mic, Camera, Clock } from 'lucide-react';
 import { products, categories } from '../lib/data';
 import { ProductCard } from '../components/product-card';
 
 const trendingSearches = ['iPhone 15', 'Toyota', 'Apartment Nairobi', 'PS5', 'Laptop', 'Sofa Set', 'Samsung TV', 'Nike Sneakers'];
+const initialRecentSearches = ['Apple Watch 5', 'Suitcase Arrow', 'iPhone Case', 'Patch Sneaker'];
 
 export default function SearchPage() {
   const [query, setQuery] = useState('');
+  const [recentSearches, setRecentSearches] = useState(initialRecentSearches);
+  const [isListening, setIsListening] = useState(false);
 
   const filtered = query.length >= 2
     ? products.filter(p =>
@@ -18,6 +21,37 @@ export default function SearchPage() {
         p.location.toLowerCase().includes(query.toLowerCase())
       )
     : [];
+
+  const handleVoiceSearch = () => {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      
+      recognition.onstart = () => setIsListening(true);
+      recognition.onend = () => setIsListening(false);
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setQuery(transcript);
+      };
+      recognition.start();
+    } else {
+      alert('Voice search is not supported in your browser');
+    }
+  };
+
+  const handleImageSearch = () => {
+    alert('Image search: Upload or capture a photo to find similar products');
+  };
+
+  const removeRecentSearch = (term: string) => {
+    setRecentSearches(prev => prev.filter(s => s !== term));
+  };
+
+  const handleRecentClick = (term: string) => {
+    setQuery(term);
+  };
 
   return (
     <div className="max-w-6xl mx-auto px-4 md:px-6 py-6">
@@ -30,18 +64,62 @@ export default function SearchPage() {
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search products, categories, locations..."
           autoFocus
-          className="w-full bg-surface border border-theme rounded-xl py-3.5 pl-12 pr-10 text-theme-primary placeholder:text-theme-muted outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 text-sm"
+          className="w-full bg-surface border border-theme rounded-xl py-3.5 pl-12 pr-28 text-theme-primary placeholder:text-theme-muted outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 text-sm"
         />
-        {query && (
-          <button onClick={() => setQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-elevated flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-            <X className="w-4 h-4 text-theme-muted" />
+        <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+          {query && (
+            <button onClick={() => setQuery('')} className="w-7 h-7 rounded-full bg-elevated flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+              <X className="w-4 h-4 text-theme-muted" />
+            </button>
+          )}
+          <button 
+            onClick={handleVoiceSearch}
+            className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${isListening ? 'bg-primary text-white animate-pulse' : 'bg-elevated hover:bg-gray-200 dark:hover:bg-gray-700 text-theme-muted'}`}
+            title="Voice search"
+          >
+            <Mic className="w-4 h-4" />
           </button>
-        )}
+          <button 
+            onClick={handleImageSearch}
+            className="w-8 h-8 rounded-full bg-elevated flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-theme-muted"
+            title="Image search"
+          >
+            <Camera className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {/* No query - show trending and categories */}
       {query.length < 2 && (
         <>
+          {/* Recent Searches */}
+          {recentSearches.length > 0 && (
+            <div className="mb-6">
+              <h2 className="font-bold text-theme-primary text-sm mb-3 flex items-center gap-2">
+                <Clock className="w-4 h-4 text-theme-muted" /> Recent Searches
+              </h2>
+              <div className="flex flex-col gap-1">
+                {recentSearches.map((term) => (
+                  <div key={term} className="flex items-center justify-between py-2 border-b border-theme/50 group">
+                    <button
+                      onClick={() => handleRecentClick(term)}
+                      className="flex items-center gap-3 text-theme-secondary hover:text-primary transition-colors"
+                    >
+                      <Search className="w-4 h-4 text-theme-muted" />
+                      <span className="text-sm">{term}</span>
+                    </button>
+                    <button
+                      onClick={() => removeRecentSearch(term)}
+                      className="p-1 rounded-full hover:bg-elevated opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="w-4 h-4 text-theme-muted" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Trending Searches */}
           <div className="mb-8">
             <h2 className="font-bold text-theme-primary text-sm mb-3 flex items-center gap-2">

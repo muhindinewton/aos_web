@@ -2,14 +2,74 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import { ChevronRight, Zap, Truck, TrendingUp, MapPin, Heart, Star, Clock, Car, Smartphone, Monitor, Sofa, Shirt, Sparkles, Wrench, Home as HomeIcon, Baby, Cat, ChevronLeft, Flame, Award, Package, Shield, Gift, ArrowRight, Grid3X3, Compass } from 'lucide-react';
-import { products, categories, bannerSlides, services, secondaryBanners, promoTips } from './lib/data';
+import { ChevronRight, Zap, Car, Smartphone, Monitor, Sofa, Shirt, Sparkles, Wrench, Home as HomeIcon, Baby, Cat, ChevronLeft, Flame, Award, Package, Gift, ArrowRight, Grid3X3, Compass, Play, Radio, Eye } from 'lucide-react';
+import { products, categories, services, promoTips } from './lib/data';
 import { ProductCard } from './components/product-card';
 
 const categoryIcons: Record<string, React.ElementType> = {
   Vehicles: Car, Property: HomeIcon, Phones: Smartphone, Electronics: Monitor,
   Furniture: Sofa, Fashion: Shirt, Beauty: Sparkles, Services: Wrench, Kids: Baby, Pets: Cat,
 };
+
+const feedItems = [
+  { id: '1', type: 'live', creator: 'TechDeals_KE', avatar: 'T', viewers: 1247, title: 'Flash Sale Electronics!' },
+  { id: '2', type: 'short', creator: 'SneakerHead', avatar: 'S', views: 23500, title: 'New Jordan 1s 🔥' },
+  { id: '3', type: 'short', creator: 'FashionHub', avatar: 'F', views: 15200, title: 'Summer collection' },
+  { id: '4', type: 'live', creator: 'BeautyQueen', avatar: 'B', viewers: 892, title: 'Skincare routine' },
+  { id: '5', type: 'short', creator: 'HomeDecor', avatar: 'H', views: 5600, title: 'Room makeover' },
+  { id: '6', type: 'short', creator: 'GadgetGuru', avatar: 'G', views: 8900, title: 'iPhone 15 review' },
+];
+
+function FeedSection() {
+  const formatCount = (n: number) => n >= 1000 ? `${(n/1000).toFixed(1)}k` : n.toString();
+  
+  return (
+    <div className="flex gap-3 overflow-x-auto hide-scrollbar pb-1 -mx-4 px-4 md:-mx-6 md:px-6">
+      {feedItems.map((item) => (
+        <Link
+          key={item.id}
+          href="/feed"
+          className="w-[130px] h-[200px] flex-shrink-0 rounded-2xl overflow-hidden relative bg-black group"
+        >
+          <img
+            src={`https://picsum.photos/seed/feed${item.id}/260/400`}
+            alt={item.title}
+            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/80" />
+          
+          {item.type === 'live' ? (
+            <div className="absolute top-2 right-2 px-2 py-1 bg-red-500 rounded-md flex items-center gap-1">
+              <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+              <span className="text-white text-[10px] font-bold">LIVE</span>
+            </div>
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full bg-white/90 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Play className="w-5 h-5 text-black ml-0.5" />
+              </div>
+            </div>
+          )}
+          
+          <div className="absolute bottom-0 left-0 right-0 p-2.5">
+            <div className="flex items-center gap-1.5 mb-1">
+              <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${item.type === 'live' ? 'bg-red-500/80 text-white border border-red-400' : 'bg-white/90 text-black'}`}>
+                {item.avatar}
+              </div>
+              <span className="text-white text-[11px] font-semibold truncate">@{item.creator}</span>
+            </div>
+            <div className="flex items-center gap-1 text-white/80">
+              <Eye className="w-3 h-3" />
+              <span className="text-[10px]">
+                {item.type === 'live' ? `${formatCount(item.viewers!)} watching` : `${formatCount(item.views!)} views`}
+              </span>
+            </div>
+          </div>
+        </Link>
+      ))}
+    </div>
+  );
+}
 
 function SectionHeader({ title, href, icon: Icon }: { title: string; href: string; icon?: React.ElementType }) {
   return (
@@ -96,6 +156,55 @@ interface SlideData {
   icon?: string;
 }
 
+function BannerContent({ slide, tall }: { slide: SlideData; tall?: boolean }) {
+  const TitleTag = tall ? 'h2' : 'h3';
+
+  return (
+    <div className="relative z-10 flex h-full w-full items-center justify-center px-4 py-4 md:px-10">
+      <div
+        className={`w-full text-center text-white backdrop-blur-md ${
+          tall
+            ? 'max-w-3xl rounded-[2rem] border border-white/15 bg-white/10 px-6 py-7 shadow-[0_24px_80px_rgba(15,23,42,0.28)] md:px-10 md:py-10'
+            : 'max-w-xl rounded-[1.75rem] border border-white/15 bg-black/10 px-4 py-4 shadow-[0_18px_50px_rgba(15,23,42,0.24)] md:px-7 md:py-6'
+        }`}
+      >
+        <span
+          className={`inline-flex items-center rounded-full border border-white/20 bg-white/15 font-semibold uppercase tracking-[0.24em] text-white/95 ${
+            tall ? 'px-4 py-1.5 text-[10px] md:text-xs' : 'px-3 py-1 text-[9px] md:text-[10px]'
+          }`}
+        >
+          {slide.badge || 'Featured'}
+        </span>
+        <TitleTag
+          className={`mt-3 font-black leading-[0.95] tracking-tight text-white ${
+            tall ? 'text-3xl md:text-5xl' : 'text-xl md:text-2xl'
+          }`}
+        >
+          {slide.title}
+        </TitleTag>
+        <p className={`mt-2 font-semibold text-white/95 ${tall ? 'text-base md:text-xl' : 'text-sm md:text-base'}`}>
+          {slide.subtitle}
+        </p>
+        <p
+          className={`mx-auto mt-2 max-w-2xl text-pretty text-white/75 ${
+            tall ? 'text-sm md:text-base' : 'text-xs md:text-sm'
+          }`}
+        >
+          {slide.description}
+        </p>
+        <Link
+          href="/shop"
+          className={`mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-white font-semibold text-slate-900 transition-all hover:-translate-y-0.5 hover:bg-slate-50 ${
+            tall ? 'px-6 py-3 text-sm md:px-7' : 'px-4 py-2 text-xs md:px-5 md:text-sm'
+          }`}
+        >
+          Shop Now <ArrowRight className={tall ? 'h-4 w-4' : 'h-3.5 w-3.5'} />
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 function Slider({ slides, interval = 4000, tall }: { slides: SlideData[]; interval?: number; tall?: boolean }) {
   const [idx, setIdx] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -116,61 +225,58 @@ function Slider({ slides, interval = 4000, tall }: { slides: SlideData[]; interv
     if (Math.abs(diff) > 50) { diff > 0 ? next() : prev(); }
   };
 
-  const slide = slides[idx];
-
   return (
-    <div className={`relative ${tall ? 'h-48 md:h-64 lg:h-80' : 'h-36 md:h-44'} rounded-2xl overflow-hidden shadow-elevated group`} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-      {/* Background with transition */}
-      <div className="absolute inset-0 transition-all duration-700 ease-out" style={{ background: slide.bg }}>
-        {/* Decorative shapes */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -right-16 -top-16 w-64 h-64 md:w-96 md:h-96 rounded-full bg-white/[0.08]" />
-          <div className="absolute right-12 bottom-0 w-40 h-40 md:w-56 md:h-56 rounded-full bg-white/[0.06]" />
-          <div className="absolute left-1/3 -bottom-8 w-32 h-32 rounded-full bg-black/[0.08]" />
+    <div className={`relative ${tall ? 'h-52 md:h-72 lg:h-80' : 'h-40 md:h-48'} rounded-3xl overflow-hidden shadow-elevated group`} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+      {/* Background layers */}
+      {slides.map((s, i) => (
+        <div 
+          key={i}
+          className={`absolute inset-0 transition-opacity duration-700 ease-out ${i === idx ? 'opacity-100' : 'opacity-0'}`} 
+          style={{ background: s.bg }}
+        >
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.15),transparent_50%)]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20" />
         </div>
-      </div>
+      ))}
 
-      {/* Content with crossfade */}
-      <div className="absolute inset-0 flex">
-        {slides.map((s, i) => (
-          <div key={i} className={`absolute inset-0 transition-all duration-500 ${i === idx ? 'opacity-100 translate-x-0' : i < idx ? 'opacity-0 -translate-x-full' : 'opacity-0 translate-x-full'}`}>
-            <div className="h-full flex items-center">
-              {tall ? (
-                <div className="h-full p-5 md:p-8 lg:p-10 flex flex-col justify-center relative z-10 max-w-[70%] md:max-w-[60%]">
-                  <span className="text-[10px] md:text-xs font-bold bg-white/20 backdrop-blur-sm border border-white/10 px-3 py-1 rounded-full w-fit mb-2 md:mb-3 uppercase tracking-wider">{s.badge || 'Featured'}</span>
-                  <h2 className="text-xl md:text-3xl lg:text-4xl font-extrabold leading-tight text-white drop-shadow-sm">{s.title}</h2>
-                  <p className="text-sm md:text-lg font-semibold text-white/95 mt-1">{s.subtitle}</p>
-                  <p className="text-[11px] md:text-sm text-white/70 mt-0.5">{s.description}</p>
-                  <Link href="/shop" className="mt-3 md:mt-5 bg-white text-gray-900 px-5 md:px-6 py-2 md:py-2.5 rounded-full text-xs md:text-sm font-bold w-fit hover:bg-gray-100 transition-all hover:scale-105 shadow-lg inline-flex items-center gap-1.5">
-                    Shop Now <ArrowRight className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                  </Link>
-                </div>
-              ) : (
-                <div className="h-full p-3 md:p-4 flex items-center relative z-10">
-                  <div className="max-w-[60%]">
-                    {s.badge && <span className="text-[9px] md:text-[10px] font-bold bg-white/90 text-gray-900 px-2 py-0.5 rounded-full shadow-sm whitespace-nowrap inline-block">{s.badge}</span>}
-                    <h3 className="text-base md:text-lg font-bold mt-1 leading-tight text-white drop-shadow-sm">{s.title}</h3>
-                    <p className="text-[11px] md:text-xs text-white/90 font-medium leading-tight">{s.subtitle}</p>
-                    <Link href="/shop" className="mt-1.5 md:mt-2 inline-flex items-center gap-1 bg-white/20 backdrop-blur-sm border border-white/20 px-2.5 py-1 rounded-full text-[11px] font-semibold text-white hover:bg-white/30 transition-all">
-                      Shop <ArrowRight className="w-3 h-3" />
-                    </Link>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
+      {/* Content with fade transition */}
+      {slides.map((s, i) => (
+        <div 
+          key={i} 
+          className={`absolute inset-0 transition-all duration-500 ease-out ${
+            i === idx ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
+          }`}
+        >
+          <BannerContent slide={s} tall={tall} />
+        </div>
+      ))}
 
-      <button onClick={prev} className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-black/40 backdrop-blur-sm text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/60 shadow-lg">
+      {/* Navigation arrows */}
+      <button 
+        onClick={prev} 
+        className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/90 dark:bg-black/50 backdrop-blur-sm text-slate-800 dark:text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:scale-110 shadow-lg"
+      >
         <ChevronLeft className="w-5 h-5" />
       </button>
-      <button onClick={next} className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-black/40 backdrop-blur-sm text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/60 shadow-lg">
+      <button 
+        onClick={next} 
+        className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/90 dark:bg-black/50 backdrop-blur-sm text-slate-800 dark:text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:scale-110 shadow-lg"
+      >
         <ChevronRight className="w-5 h-5" />
       </button>
-      <div className={`absolute ${tall ? 'bottom-3' : 'bottom-2'} left-1/2 -translate-x-1/2 flex gap-2 z-20`}>
+
+      {/* Dots indicator */}
+      <div className={`absolute ${tall ? 'bottom-4' : 'bottom-3'} left-1/2 -translate-x-1/2 flex gap-1.5 z-20 bg-black/20 backdrop-blur-sm rounded-full px-2 py-1.5`}>
         {slides.map((_, i) => (
-          <button key={i} onClick={() => go(i)} className={`rounded-full transition-all duration-300 ${i === idx ? 'w-7 h-2 bg-white shadow-md' : 'w-2 h-2 bg-white/50 hover:bg-white/70'}`} />
+          <button 
+            key={i} 
+            onClick={() => go(i)} 
+            className={`rounded-full transition-all duration-300 ${
+              i === idx 
+                ? 'w-6 h-1.5 bg-white shadow-sm' 
+                : 'w-1.5 h-1.5 bg-white/50 hover:bg-white/70'
+            }`} 
+          />
         ))}
       </div>
     </div>
@@ -194,10 +300,10 @@ const heroSlides: SlideData[] = [
   },
   {
     bg: 'linear-gradient(135deg, #134E5E 0%, #1A6B3C 50%, #71B280 100%)',
-    badge: '🚚 Free Delivery',
-    title: 'Free Shipping',
-    subtitle: 'On orders above Ksh 1,000',
-    description: 'Fast & reliable shipping across the country',
+    badge: '✅ Verified Sellers',
+    title: 'Buy with Confidence',
+    subtitle: 'Trusted & Verified Listings',
+    description: 'Every seller is reviewed by real buyers across Africa',
   },
   {
     bg: 'linear-gradient(135deg, #4A0E4E 0%, #7B1FA2 50%, #CE93D8 100%)',
@@ -239,6 +345,68 @@ const secSlides: SlideData[] = [
   },
 ];
 
+const centeredHeroSlides: SlideData[] = [
+  {
+    bg: 'linear-gradient(135deg, #C1121F 0%, #8B0000 40%, #FF4500 100%)',
+    badge: 'Flash Sale',
+    title: 'Up to 70% Off',
+    subtitle: 'Mega Savings Event',
+    description: 'Biggest deals of the season, with limited-time savings across the most wanted categories.',
+  },
+  {
+    bg: 'linear-gradient(135deg, #0F2027 0%, #203A43 40%, #2C5364 100%)',
+    badge: 'New Arrivals',
+    title: 'Latest Collections',
+    subtitle: 'Fresh Products Daily',
+    description: 'Discover trending items before everyone else and stay ahead of what shoppers want next.',
+  },
+  {
+    bg: 'linear-gradient(135deg, #134E5E 0%, #1A6B3C 50%, #71B280 100%)',
+    badge: 'Verified Sellers',
+    title: 'Buy with Confidence',
+    subtitle: 'Trusted & Verified Listings',
+    description: 'Every seller is reviewed by real buyers so you can shop with complete peace of mind.',
+  },
+  {
+    bg: 'linear-gradient(135deg, #4A0E4E 0%, #7B1FA2 50%, #CE93D8 100%)',
+    badge: 'Limited Time',
+    title: 'Electronics Week',
+    subtitle: 'Tech at Unbeatable Prices',
+    description: 'Top brands and standout value, wrapped in a sharper banner that keeps every message centered.',
+  },
+];
+
+const centeredSecondarySlides: SlideData[] = [
+  {
+    bg: 'linear-gradient(135deg, #E65100 0%, #FF8F00 100%)',
+    badge: 'Today Only',
+    title: 'Deal of the Day',
+    subtitle: 'Up to 60% off electronics',
+    description: 'Hurry, offer ends at midnight!',
+  },
+  {
+    bg: 'linear-gradient(135deg, #1565C0 0%, #42A5F5 100%)',
+    badge: 'Top Sellers',
+    title: 'Best Sellers',
+    subtitle: 'Most popular this week',
+    description: 'Join thousands of happy buyers',
+  },
+  {
+    bg: 'linear-gradient(135deg, #6A1B9A 0%, #AB47BC 100%)',
+    badge: 'Just In',
+    title: 'New Arrivals',
+    subtitle: 'Fresh new products',
+    description: 'Be the first to shop the latest',
+  },
+  {
+    bg: 'linear-gradient(135deg, #2E7D32 0%, #66BB6A 100%)',
+    badge: 'Save Big',
+    title: 'Budget Finds',
+    subtitle: 'Quality under Ksh 500',
+    description: 'Great products, small prices',
+  },
+];
+
 export default function HomePage() {
   const flash = products.filter(p => p.isOffer);
   const electronics = products.filter(p => p.category === 'Electronics');
@@ -252,7 +420,7 @@ export default function HomePage() {
 
       {/* ===== HERO CAROUSEL ===== */}
       <section className="mb-6">
-        <Slider slides={heroSlides} interval={3000} tall />
+        <Slider slides={centeredHeroSlides} interval={3000} tall />
       </section>
 
       {/* ===== QUICK ACTIONS ===== */}
@@ -288,6 +456,12 @@ export default function HomePage() {
             );
           })}
         </div>
+      </section>
+
+      {/* ===== LIVE & SHORTS ===== */}
+      <section className="mb-6">
+        <SectionHeader title="Live & Shorts" href="/feed" icon={Radio} />
+        <FeedSection />
       </section>
 
       {/* ===== FLASH SALES ===== */}
@@ -368,7 +542,7 @@ export default function HomePage() {
 
       {/* ===== SECONDARY BANNER SLIDER ===== */}
       <section className="mb-6">
-        <Slider slides={secSlides} interval={4000} />
+        <Slider slides={centeredSecondarySlides} interval={4000} />
       </section>
 
       {/* ===== ELECTRONICS ===== */}

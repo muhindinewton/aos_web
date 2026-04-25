@@ -20,7 +20,7 @@ export function SearchBar({ variant = 'default', onSearch }: SearchBarProps) {
 
   return (
     <form onSubmit={handleSubmit} className="w-full">
-      <div className={`bg-theme-surface rounded-xl border border-theme-border/30 flex items-center gap-2 ${isHome ? 'px-3 py-1.5' : 'px-4 py-3'}`}>
+      <div className={`bg-surface rounded-xl border border-theme flex items-center gap-2 ${isHome ? 'px-3 py-1.5' : 'px-4 py-3'}`}>
         <Search className="w-5 h-5 text-theme-muted" />
         <input
           type="text"
@@ -32,13 +32,13 @@ export function SearchBar({ variant = 'default', onSearch }: SearchBarProps) {
         <div className="flex items-center gap-1">
           <button
             type="button"
-            className="p-2 rounded-lg bg-theme-elevated hover:bg-primary/10 transition-colors"
+            className="p-2 rounded-lg bg-elevated hover:bg-primary/10 transition-colors"
           >
             <Mic className="w-5 h-5 text-theme-muted" />
           </button>
           <button
             type="button"
-            className="p-2 rounded-lg bg-theme-elevated hover:bg-primary/10 transition-colors"
+            className="p-2 rounded-lg bg-elevated hover:bg-primary/10 transition-colors"
           >
             <Camera className="w-5 h-5 text-theme-muted" />
           </button>

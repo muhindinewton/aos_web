@@ -2,8 +2,11 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { AuthProvider } from './providers/auth-provider';
 import { ThemeProvider } from './providers/theme-provider';
+import { ToastProvider } from './providers/toast-provider';
+import { LocationProvider } from './providers/location-provider';
 import { Navbar } from './components/bottom-nav';
 import { Footer } from './components/footer';
+import { AppWrapper } from './components/app-wrapper';
 
 export const metadata: Metadata = {
   title: 'AOS - Africa Online Stores',
@@ -24,11 +27,17 @@ export default function RootLayout({
       </head>
       <body className="bg-theme text-theme-primary">
         <ThemeProvider>
+          <LocationProvider>
           <AuthProvider>
-            <Navbar />
-            <main className="pb-20 md:pb-0">{children}</main>
-            <div className="hidden md:block"><Footer /></div>
+            <ToastProvider>
+              <AppWrapper>
+                <Navbar />
+                <main className="pb-20 md:pb-0">{children}</main>
+                <div className="hidden md:block"><Footer /></div>
+              </AppWrapper>
+            </ToastProvider>
           </AuthProvider>
+          </LocationProvider>
         </ThemeProvider>
       </body>
     </html>
