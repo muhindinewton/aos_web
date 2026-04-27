@@ -1,15 +1,34 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
-import { ChevronLeft, Send, Phone, MoreVertical } from 'lucide-react';
+import { useParams, useSearchParams, useRouter } from 'next/navigation';
+import { ChevronLeft, Send, Phone, MoreVertical, PhoneOff, Mic, MicOff, Volume2 } from 'lucide-react';
 import { chats } from '../../lib/data';
 
 export default function ChatDetailPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const cameFromCall = searchParams.get('call') === '1';
   const chat = chats.find(c => c.id === params.id) || chats[0];
   const [newMessage, setNewMessage] = useState('');
+  const [inCall, setInCall] = useState(false);
+  const [muted, setMuted] = useState(false);
+  const [callSeconds, setCallSeconds] = useState(0);
+
+  useEffect(() => {
+    if (searchParams.get('call') === '1') setInCall(true);
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (!inCall) { setCallSeconds(0); return; }
+    const t = setInterval(() => setCallSeconds(s => s + 1), 1000);
+    return () => clearInterval(t);
+  }, [inCall]);
+
+  const formatDuration = (s: number) =>
+    `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
   const [messages, setMessages] = useState(chat.messages);
 
   const handleSend = () => {
@@ -46,7 +65,10 @@ export default function ChatDetailPage() {
           <p className="text-[11px] text-theme-muted">{chat.online ? 'Online' : 'Last seen recently'}</p>
         </div>
         <div className="flex items-center gap-1">
-          <button className="w-9 h-9 rounded-full hover:bg-elevated flex items-center justify-center transition-colors">
+          <button
+            onClick={() => setInCall(true)}
+            className="w-9 h-9 rounded-full hover:bg-elevated flex items-center justify-center transition-colors"
+          >
             <Phone className="w-4 h-4 text-theme-muted" />
           </button>
           <button className="w-9 h-9 rounded-full hover:bg-elevated flex items-center justify-center transition-colors">
@@ -70,6 +92,48 @@ export default function ChatDetailPage() {
           </div>
         ))}
       </div>
+
+      {/* In-call overlay */}
+      {inCall && (
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-between bg-gradient-to-b from-gray-900 to-gray-800 text-white px-6 py-12">
+          <div className="flex flex-col items-center gap-4 mt-10">
+            <div className="w-24 h-24 rounded-full bg-primary/20 border-4 border-primary flex items-center justify-center text-4xl font-bold">
+              {chat.avatar}
+            </div>
+            <p className="text-2xl font-bold">{chat.name}</p>
+            <p className="text-sm text-white/60">{callSeconds < 5 ? 'Calling…' : formatDuration(callSeconds)}</p>
+          </div>
+
+          <div className="flex items-center justify-center gap-8 mb-8">
+            <button
+              onClick={() => setMuted(m => !m)}
+              className="flex flex-col items-center gap-2"
+            >
+              <div className={`w-14 h-14 rounded-full flex items-center justify-center ${muted ? 'bg-white/20' : 'bg-white/10'}`}>
+                {muted ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
+              </div>
+              <span className="text-xs text-white/60">{muted ? 'Unmute' : 'Mute'}</span>
+            </button>
+
+            <button
+              onClick={() => { setInCall(false); if (cameFromCall) router.back(); }}
+              className="flex flex-col items-center gap-2"
+            >
+              <div className="w-16 h-16 rounded-full bg-red-500 flex items-center justify-center shadow-lg">
+                <PhoneOff className="w-7 h-7" />
+              </div>
+              <span className="text-xs text-white/60">End</span>
+            </button>
+
+            <button className="flex flex-col items-center gap-2">
+              <div className="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center">
+                <Volume2 className="w-6 h-6" />
+              </div>
+              <span className="text-xs text-white/60">Speaker</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Input */}
       <div className="bg-surface border-t border-theme px-4 py-3 flex items-center gap-2 flex-shrink-0">

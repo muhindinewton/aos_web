@@ -17,7 +17,6 @@ import {
   Phone,
   Share2,
   Shield,
-  ShoppingCart,
   Star,
   Store,
   ThumbsDown,
@@ -88,7 +87,6 @@ export default function ProductDetailPage() {
 
   const [liked, setLiked] = useState(false);
   const [currentImage, setCurrentImage] = useState(0);
-  const [showCallModal, setShowCallModal] = useState(false);
   const touchStartX = useRef<number | null>(null);
   const imageCount = 4;
 
@@ -298,17 +296,14 @@ export default function ProductDetailPage() {
                   </div>
                 </div>
 
-                <div className="hidden gap-3 md:grid md:grid-cols-[64px_1fr_1fr]">
-                  <button className="flex h-14 w-14 items-center justify-center rounded-2xl border border-theme bg-elevated text-theme-primary transition-colors hover:bg-primary/5">
-                    <ShoppingCart className="h-5 w-5" />
-                  </button>
-                  <button
-                    onClick={() => setShowCallModal(true)}
+                <div className="hidden gap-3 md:grid md:grid-cols-2">
+                  <Link
+                    href={`/chat/${seller.id}?call=1`}
                     className="flex h-14 items-center justify-center gap-2 rounded-2xl border border-primary text-sm font-semibold text-primary transition-colors hover:bg-primary/5"
                   >
                     <Phone className="h-4 w-4" />
                     Call Seller
-                  </button>
+                  </Link>
                   <Link
                     href={`/chat/${seller.id}`}
                     className="flex h-14 items-center justify-center gap-2 rounded-2xl bg-primary text-sm font-semibold text-white transition-colors hover:bg-primary-hover"
@@ -531,16 +526,13 @@ export default function ProductDetailPage() {
 
       <div className="fixed bottom-16 left-0 right-0 z-40 border-t border-theme bg-surface backdrop-blur md:hidden">
         <div className="flex items-center gap-2 px-4 py-3">
-          <button className="flex h-12 w-12 items-center justify-center rounded-2xl border border-theme bg-elevated text-theme-primary transition-colors hover:bg-primary/5">
-            <ShoppingCart className="h-5 w-5" />
-          </button>
-          <button
-            onClick={() => setShowCallModal(true)}
+          <Link
+            href={`/chat/${seller.id}?call=1`}
             className="flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl border border-primary text-sm font-semibold text-primary transition-colors hover:bg-primary/5"
           >
             <Phone className="h-4 w-4" />
             Call
-          </button>
+          </Link>
           <Link
             href={`/chat/${seller.id}`}
             className="flex h-12 flex-[1.25] items-center justify-center gap-2 rounded-2xl bg-primary text-sm font-semibold text-white transition-colors hover:bg-primary-hover"
@@ -550,48 +542,6 @@ export default function ProductDetailPage() {
           </Link>
         </div>
       </div>
-      {/* Call Modal */}
-      {showCallModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/50"
-          onClick={() => setShowCallModal(false)}
-        >
-          <div
-            className="bg-surface w-full max-w-sm rounded-t-3xl md:rounded-3xl p-6"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-center mb-4">
-              <div className="w-12 h-1 rounded-full bg-elevated md:hidden" />
-            </div>
-            <div className="flex items-center gap-4 mb-5">
-              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <span className="text-primary font-bold text-xl">{seller.avatar}</span>
-              </div>
-              <div>
-                <p className="font-bold text-theme-primary">{seller.name}</p>
-                <p className="text-sm text-theme-muted">Listed: {product.title}</p>
-              </div>
-            </div>
-            <div className="bg-elevated rounded-2xl px-5 py-4 mb-5 text-center">
-              <p className="text-xs text-theme-muted mb-1">Phone Number</p>
-              <p className="text-lg font-bold text-theme-primary tracking-wider">+254 712 345 678</p>
-            </div>
-            <a
-              href="tel:+254712345678"
-              className="flex items-center justify-center gap-2 w-full bg-primary text-white font-semibold py-3.5 rounded-2xl hover:bg-primary-hover transition-colors mb-3"
-            >
-              <Phone className="w-4 h-4" />
-              Call Now
-            </a>
-            <button
-              onClick={() => setShowCallModal(false)}
-              className="w-full border border-theme text-theme-secondary font-semibold py-3 rounded-2xl hover:bg-elevated transition-colors text-sm"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
     </>
   );
 }

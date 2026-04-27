@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Search, X, TrendingUp, Mic, Camera, Clock } from 'lucide-react';
 import { products, categories } from '../lib/data';
 import { ProductCard } from '../components/product-card';
@@ -10,9 +11,9 @@ const trendingSearches = ['iPhone 15', 'Toyota', 'Apartment Nairobi', 'PS5', 'La
 const initialRecentSearches = ['Apple Watch 5', 'Suitcase Arrow', 'iPhone Case', 'Patch Sneaker'];
 
 export default function SearchPage() {
+  const router = useRouter();
   const [query, setQuery] = useState('');
   const [recentSearches, setRecentSearches] = useState(initialRecentSearches);
-  const [isListening, setIsListening] = useState(false);
 
   const filtered = query.length >= 2
     ? products.filter(p =>
@@ -22,28 +23,8 @@ export default function SearchPage() {
       )
     : [];
 
-  const handleVoiceSearch = () => {
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
-      const recognition = new SpeechRecognition();
-      recognition.continuous = false;
-      recognition.interimResults = false;
-      
-      recognition.onstart = () => setIsListening(true);
-      recognition.onend = () => setIsListening(false);
-      recognition.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        setQuery(transcript);
-      };
-      recognition.start();
-    } else {
-      alert('Voice search is not supported in your browser');
-    }
-  };
-
-  const handleImageSearch = () => {
-    alert('Image search: Upload or capture a photo to find similar products');
-  };
+  const handleVoiceSearch = () => router.push('/search/voice');
+  const handleImageSearch = () => router.push('/search/image');
 
   const removeRecentSearch = (term: string) => {
     setRecentSearches(prev => prev.filter(s => s !== term));
@@ -74,7 +55,7 @@ export default function SearchPage() {
           )}
           <button 
             onClick={handleVoiceSearch}
-            className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${isListening ? 'bg-primary text-white animate-pulse' : 'bg-elevated hover:bg-gray-200 dark:hover:bg-gray-700 text-theme-muted'}`}
+            className="w-8 h-8 rounded-full flex items-center justify-center transition-colors bg-elevated hover:bg-gray-200 dark:hover:bg-gray-700 text-theme-muted"
             title="Voice search"
           >
             <Mic className="w-4 h-4" />

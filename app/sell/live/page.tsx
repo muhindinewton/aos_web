@@ -19,7 +19,10 @@ import {
   ChevronRight,
   Hash,
   AlignLeft,
+  Search,
+  Check,
 } from 'lucide-react';
+import { products } from '../../lib/data';
 
 type LiveState = 'setup' | 'live' | 'ended';
 const MAX_DESC = 512;
@@ -42,6 +45,9 @@ export default function GoLivePage() {
   const [description, setDesc]    = useState('');
   const [hashtags, setHashtags]   = useState('');
   const [coverPreview, setCover]  = useState<string | null>(null);
+  const [featuredProducts, setFeaturedProducts] = useState<string[]>([]);
+  const [showProductPicker, setShowProductPicker] = useState(false);
+  const [productQuery, setProductQuery] = useState('');
   const [viewers, setViewers]     = useState(0);
   const [likes, setLikes]         = useState(0);
   const [comments, setComments]   = useState<typeof MOCK_COMMENTS>([]);
@@ -199,12 +205,33 @@ export default function GoLivePage() {
 
             {/* Featured products */}
             <div>
-              <p className="text-xs text-theme-muted mb-2">0/5 featured products</p>
-              <button className="w-full flex items-center gap-3 px-4 py-3.5 border border-theme rounded-xl hover:bg-elevated transition-colors">
-                <Plus className="w-5 h-5 text-theme-primary" />
-                <span className="flex-1 text-sm font-semibold text-theme-primary text-left">Add featured products</span>
-                <ChevronRight className="w-5 h-5 text-theme-muted" />
-              </button>
+              <p className="text-xs text-theme-muted mb-2">{featuredProducts.length}/5 featured products</p>
+              {featuredProducts.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {featuredProducts.map(id => {
+                    const p = products.find(p => p.id === id);
+                    if (!p) return null;
+                    return (
+                      <div key={id} className="flex items-center gap-2 bg-elevated border border-theme rounded-xl px-3 py-2">
+                        <span className="text-xs font-medium text-theme-primary truncate max-w-[120px]">{p.title}</span>
+                        <button onClick={() => setFeaturedProducts(prev => prev.filter(i => i !== id))}>
+                          <X className="w-3.5 h-3.5 text-theme-muted hover:text-primary" />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              {featuredProducts.length < 5 && (
+                <button
+                  onClick={() => setShowProductPicker(true)}
+                  className="w-full flex items-center gap-3 px-4 py-3.5 border border-theme rounded-xl hover:bg-elevated transition-colors"
+                >
+                  <Plus className="w-5 h-5 text-theme-primary" />
+                  <span className="flex-1 text-sm font-semibold text-theme-primary text-left">Add featured products</span>
+                  <ChevronRight className="w-5 h-5 text-theme-muted" />
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -223,6 +250,73 @@ export default function GoLivePage() {
             <p className="text-center text-xs text-theme-muted">Viewers will be notified when you go live</p>
           </div>
         </div>
+
+        {/* Product Picker Sheet */}
+        {showProductPicker && (
+          <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm">
+            <div className="bg-surface rounded-t-3xl w-full max-w-lg flex flex-col" style={{ maxHeight: '85dvh' }}>
+              <div className="p-4 flex-shrink-0 border-b border-theme">
+                <div className="w-10 h-1 bg-theme rounded-full mx-auto mb-3" />
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-bold text-theme-primary">Add Featured Products</h3>
+                  <button onClick={() => { setShowProductPicker(false); setProductQuery(''); }}>
+                    <X className="w-5 h-5 text-theme-muted" />
+                  </button>
+                </div>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-theme-muted" />
+                  <input
+                    autoFocus
+                    type="text"
+                    value={productQuery}
+                    onChange={e => setProductQuery(e.target.value)}
+                    placeholder="Search your products..."
+                    className="w-full bg-elevated border border-theme rounded-xl py-2.5 pl-9 pr-4 text-sm text-theme-primary placeholder:text-theme-muted outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+              <div className="overflow-y-auto flex-1 p-2">
+                {products
+                  .filter(p => p.title.toLowerCase().includes(productQuery.toLowerCase()))
+                  .map(p => {
+                    const selected = featuredProducts.includes(p.id);
+                    const maxed = !selected && featuredProducts.length >= 5;
+                    return (
+                      <button
+                        key={p.id}
+                        disabled={maxed}
+                        onClick={() => {
+                          setFeaturedProducts(prev =>
+                            selected ? prev.filter(i => i !== p.id) : [...prev, p.id]
+                          );
+                        }}
+                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-colors ${selected ? 'bg-primary/10' : maxed ? 'opacity-40' : 'hover:bg-elevated'}`}
+                      >
+                        <div className="w-12 h-12 rounded-xl bg-elevated overflow-hidden flex-shrink-0">
+                          <img src={`https://picsum.photos/seed/${p.id}/80/80`} alt={p.title} className="w-full h-full object-cover" />
+                        </div>
+                        <div className="flex-1 text-left min-w-0">
+                          <p className="text-sm font-semibold text-theme-primary truncate">{p.title}</p>
+                          <p className="text-xs text-primary font-medium">{p.price}</p>
+                        </div>
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${selected ? 'bg-primary' : 'border-2 border-theme'}`}>
+                          {selected && <Check className="w-3.5 h-3.5 text-white" />}
+                        </div>
+                      </button>
+                    );
+                  })}
+              </div>
+              <div className="p-4 border-t border-theme flex-shrink-0">
+                <button
+                  onClick={() => { setShowProductPicker(false); setProductQuery(''); }}
+                  className="w-full py-3 bg-primary text-white font-semibold rounded-2xl hover:bg-primary-hover transition-colors"
+                >
+                  Done ({featuredProducts.length}/5 selected)
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
