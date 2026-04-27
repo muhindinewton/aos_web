@@ -180,83 +180,53 @@ const ALL_CATEGORIES: CatDef[] = [
   },
 ];
 
-const CAROUSEL_ITEMS = [
-  { title: 'Special Offers',  sub: 'Up to 50% off selected items' },
-  { title: 'New Arrivals',    sub: 'Fresh products just landed' },
-  { title: 'Best Sellers',    sub: 'Top picks from our community' },
-  { title: 'Flash Sale',      sub: 'Limited time deals — hurry!' },
+const CAROUSEL_SLIDES = [
+  { title: 'Best Sellers',   sub: 'Up to 50% off selected items', bg: 'linear-gradient(135deg,#c0392b,#e74c3c)' },
+  { title: 'New Arrivals',   sub: 'Fresh products just landed',    bg: 'linear-gradient(135deg,#1565C0,#1976D2)' },
+  { title: 'Flash Sale',     sub: 'Limited time deals — hurry!',   bg: 'linear-gradient(135deg,#E65100,#F57C00)' },
+  { title: 'Top Picks',      sub: 'Curated just for you',          bg: 'linear-gradient(135deg,#6A1B9A,#8E24AA)' },
 ];
-
-function SubcategoryTile({ sub, cat }: { sub: SubcatDef; cat: CatDef }) {
-  const SubIcon = sub.Icon;
-  return (
-    <Link
-      href={`/shop?category=${encodeURIComponent(cat.name)}`}
-      className="flex flex-col items-center gap-1.5 group"
-    >
-      <div
-        className="w-full rounded-xl flex items-center justify-center transition-all duration-200 group-hover:scale-105"
-        style={{
-          aspectRatio: '1 / 1',
-          background: `${cat.color}18`,
-          border: `1px solid ${cat.color}30`,
-        }}
-      >
-        <SubIcon className="w-6 h-6" style={{ color: cat.color }} />
-      </div>
-      <span className="text-[10px] font-medium text-theme-primary text-center leading-tight line-clamp-2 w-full">
-        {sub.name}
-      </span>
-    </Link>
-  );
-}
 
 export default function CategoriesPage() {
   const [selectedIdx, setSelectedIdx] = useState(0);
   const [carouselIdx, setCarouselIdx] = useState(0);
 
   useEffect(() => {
-    const t = setInterval(() => setCarouselIdx(i => (i + 1) % CAROUSEL_ITEMS.length), 4000);
+    const t = setInterval(() => setCarouselIdx(i => (i + 1) % CAROUSEL_SLIDES.length), 4000);
     return () => clearInterval(t);
   }, []);
 
   const cat = ALL_CATEGORIES[selectedIdx];
-
   const forYouProducts = cat.dataName
-    ? products.filter(p => p.category === cat.dataName).slice(0, 8)
-    : products.slice(0, 8);
+    ? products.filter(p => p.category === cat.dataName).slice(0, 6)
+    : products.slice(0, 6);
+  const displayProducts = forYouProducts.length > 0 ? forYouProducts : products.slice(0, 6);
 
   return (
-    <div className="flex bg-theme" style={{ height: 'calc(100vh - 64px)', overflow: 'hidden' }}>
+    <div className="flex h-[calc(100dvh-152px)] md:h-[calc(100dvh-156px)] overflow-hidden bg-surface">
 
-      {/* ── Panel 1: Category Sidebar ── */}
-      <div
-        className="flex-shrink-0 overflow-y-auto border-r border-theme bg-theme hide-scrollbar"
-        style={{ width: 85 }}
-      >
+      {/* ── Left Sidebar ── */}
+      <div className="w-[88px] flex-shrink-0 overflow-y-auto border-r border-theme hide-scrollbar bg-surface">
         {ALL_CATEGORIES.map((c, i) => {
           const active = i === selectedIdx;
           return (
             <button
               key={c.name}
               onClick={() => setSelectedIdx(i)}
-              className="w-full flex flex-col items-center py-3 px-2 transition-colors"
+              className="w-full flex flex-col items-center py-3 px-2 transition-all"
               style={{
                 borderLeft: `3px solid ${active ? c.color : 'transparent'}`,
-                background: active ? 'var(--surface)' : 'transparent',
+                background: active ? `${c.color}08` : 'transparent',
               }}
             >
               <div
-                className="w-10 h-10 rounded-full flex items-center justify-center"
+                className="w-12 h-12 rounded-full flex items-center justify-center mb-1 transition-all"
                 style={{ background: active ? `${c.color}1A` : 'var(--elevated)' }}
               >
-                <c.Icon
-                  className="w-[22px] h-[22px]"
-                  style={{ color: active ? c.color : 'var(--text-secondary)' }}
-                />
+                <c.Icon className="w-6 h-6" style={{ color: active ? c.color : 'var(--text-muted)' }} />
               </div>
               <span
-                className="text-[10px] font-semibold text-center mt-1 leading-tight"
+                className="text-[10px] font-semibold text-center leading-tight line-clamp-2"
                 style={{ color: active ? c.color : 'var(--text-primary)' }}
               >
                 {c.name}
@@ -266,86 +236,87 @@ export default function CategoriesPage() {
         })}
       </div>
 
-      {/* ── Panel 2: Subcategories (2-col grid) ── */}
-      <div
-        className="flex-shrink-0 overflow-y-auto border-r border-theme bg-surface hide-scrollbar"
-        style={{ width: 220 }}
-      >
-        <div
-          className="sticky top-0 z-10 px-3 py-2.5 border-b border-theme"
-          style={{ background: 'var(--surface)' }}
-        >
-          <p className="text-[13px] font-bold text-theme-primary leading-tight">{cat.name}</p>
-        </div>
-        <div className="p-2.5 grid grid-cols-2 gap-2">
-          {cat.subcategories.map(sub => (
-            <SubcategoryTile key={sub.name} sub={sub} cat={cat} />
+      {/* ── Right Panel (single scrollable) ── */}
+      <div className="flex-1 overflow-y-auto hide-scrollbar">
+
+        {/* Banner Carousel */}
+        <div className="mx-3 mt-3 relative rounded-2xl overflow-hidden" style={{ height: 120 }}>
+          {CAROUSEL_SLIDES.map((slide, i) => (
+            <div
+              key={i}
+              className="absolute inset-0 flex flex-col justify-center px-5 transition-opacity duration-500"
+              style={{
+                background: slide.bg,
+                opacity: i === carouselIdx ? 1 : 0,
+                pointerEvents: i === carouselIdx ? 'auto' : 'none',
+              }}
+            >
+              <Tag className="absolute right-4 top-1/2 -translate-y-1/2 w-14 h-14 text-white/20" />
+              <p className="text-white font-bold text-lg leading-tight">{slide.title}</p>
+              <p className="text-white/80 text-xs mt-0.5">{slide.sub}</p>
+            </div>
           ))}
         </div>
-      </div>
-
-      {/* ── Panel 3: Banner + For You ── */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="p-4 space-y-4 pb-10">
-
-          {/* Promo Carousel */}
-          <div>
-            <div className="relative rounded-2xl overflow-hidden" style={{ height: 140 }}>
-              {CAROUSEL_ITEMS.map((item, i) => (
-                <div
-                  key={i}
-                  className="absolute inset-0 flex flex-col justify-center px-6 transition-opacity duration-500"
-                  style={{
-                    opacity: i === carouselIdx ? 1 : 0,
-                    background: 'linear-gradient(135deg, var(--primary-hover), var(--primary))',
-                    pointerEvents: i === carouselIdx ? 'auto' : 'none',
-                  }}
-                >
-                  <Tag className="absolute right-5 top-1/2 -translate-y-1/2 opacity-20 w-16 h-16 text-white" />
-                  <p className="text-white font-bold text-xl leading-tight">{item.title}</p>
-                  <p className="text-white/90 text-sm mt-1">{item.sub}</p>
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-center items-center gap-1.5 mt-2.5">
-              {CAROUSEL_ITEMS.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setCarouselIdx(i)}
-                  className="h-2 rounded-full transition-all duration-300"
-                  style={{
-                    width: i === carouselIdx ? 20 : 8,
-                    background: i === carouselIdx ? 'var(--primary)' : 'var(--border)',
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* For You */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-semibold text-theme-primary">For you</span>
-              <Link
-                href={`/shop?category=${encodeURIComponent(cat.dataName ?? cat.name)}`}
-                className="px-3 py-1 rounded-full text-xs font-medium text-primary"
-                style={{ background: 'rgba(var(--primary-rgb),0.10)' }}
-              >
-                See all
-              </Link>
-            </div>
-            {forYouProducts.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                {forYouProducts.map(p => (
-                  <ProductCard key={p.id} product={p} />
-                ))}
-              </div>
-            ) : (
-              <p className="text-xs text-theme-muted text-center py-10">No products yet in this category</p>
-            )}
-          </div>
-
+        <div className="flex justify-center items-center gap-1.5 mt-2">
+          {CAROUSEL_SLIDES.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setCarouselIdx(i)}
+              className="h-1.5 rounded-full transition-all duration-300"
+              style={{ width: i === carouselIdx ? 18 : 6, background: i === carouselIdx ? 'var(--primary)' : 'var(--border)' }}
+            />
+          ))}
         </div>
+
+        {/* Category Header */}
+        <div className="px-3 pt-3 pb-1">
+          <h2 className="text-sm font-bold text-theme-primary">{cat.name}</h2>
+        </div>
+
+        {/* Subcategory 3-col image grid */}
+        <div className="px-2 pb-3">
+          <div className="grid grid-cols-3 gap-2">
+            {cat.subcategories.map(sub => {
+              const seed = sub.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+              return (
+                <Link
+                  key={sub.name}
+                  href={`/subcategory?cat=${encodeURIComponent(cat.name)}&sub=${encodeURIComponent(sub.name)}`}
+                  className="flex flex-col items-center gap-1 group"
+                >
+                  <div className="w-full rounded-xl overflow-hidden bg-elevated border border-theme" style={{ aspectRatio: '1/1' }}>
+                    <img
+                      src={`https://picsum.photos/seed/${seed}/120/120`}
+                      alt={sub.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                    />
+                  </div>
+                  <span className="text-[10px] font-medium text-theme-primary text-center leading-tight line-clamp-2 w-full">
+                    {sub.name}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* For You */}
+        <div className="px-3 pb-6">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-bold text-theme-primary">For you</span>
+            <Link
+              href={`/subcategory?cat=${encodeURIComponent(cat.name)}`}
+              className="text-xs font-semibold text-primary px-3 py-1 rounded-full"
+              style={{ background: 'rgba(var(--primary-rgb,220,38,38),0.10)' }}
+            >
+              See all
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {displayProducts.map(p => <ProductCard key={p.id} product={p} />)}
+          </div>
+        </div>
+
       </div>
     </div>
   );

@@ -24,7 +24,7 @@ import {
   Check,
   Heart,
 } from 'lucide-react';
-import { products } from '../../lib/data';
+import { products, categories } from '../../lib/data';
 import { ProductCard } from '../../components/product-card';
 
 interface SellerStats {
@@ -74,7 +74,7 @@ const mockSellerInfo: Record<string, SellerInfo> = {
 };
 
 const sortOptions = ['Latest', 'Most Popular', 'Highest Price', 'Lowest Price'];
-const categoryOptions = ['All Categories', 'Phones', 'Laptops', 'Accessories', 'Tablets', 'Gaming'];
+const categoryOptions = ['All Categories', ...categories.filter(c => c.id !== 'all').map(c => c.name)];
 
 
 export default function SellerStorefrontPage() {

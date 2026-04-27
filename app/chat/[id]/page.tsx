@@ -24,7 +24,7 @@ export default function ChatDetailPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto flex flex-col h-[calc(100vh-80px)] md:h-[calc(100vh-140px)]">
+    <div className="max-w-3xl mx-auto flex flex-col h-[calc(100dvh-144px)] md:h-[calc(100dvh-140px)]">
       {/* Chat Header */}
       <div className="bg-surface border-b border-theme px-4 py-3 flex items-center gap-3 flex-shrink-0">
         <Link href="/contact" className="md:hidden w-8 h-8 rounded-full bg-elevated flex items-center justify-center">

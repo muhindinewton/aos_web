@@ -1,10 +1,22 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import {
+  auth,
+  googleProvider,
+  appleProvider,
+  signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  updateProfile,
+  signOut,
+  onAuthStateChanged,
+  type User as FirebaseUser,
+} from '../lib/firebase';
 
 interface User {
   id: string;
-  email: string;
+  email: string | null;
   displayName: string | null;
   photoURL: string | null;
 }
@@ -12,72 +24,77 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isLoggedIn: boolean;
+  loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string, name: string) => Promise<void>;
-  logout: () => void;
+  loginWithGoogle: () => Promise<void>;
+  loginWithApple: () => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   isLoggedIn: false,
+  loading: true,
   login: async () => {},
   signup: async () => {},
-  logout: () => {},
+  loginWithGoogle: async () => {},
+  loginWithApple: async () => {},
+  logout: async () => {},
 });
+
+function toUser(fb: FirebaseUser): User {
+  return {
+    id: fb.uid,
+    email: fb.email,
+    displayName: fb.displayName,
+    photoURL: fb.photoURL,
+  };
+}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setMounted(true);
-    // Check localStorage for saved auth
-    const saved = localStorage.getItem('aos-user');
-    if (saved) {
-      setUser(JSON.parse(saved));
-    }
+    const unsub = onAuthStateChanged(auth, (fb) => {
+      setUser(fb ? toUser(fb) : null);
+      setLoading(false);
+    });
+    return unsub;
   }, []);
 
   const login = async (email: string, password: string) => {
-    // Mock login - in production, integrate with Firebase Auth
-    const mockUser: User = {
-      id: '1',
-      email,
-      displayName: email.split('@')[0],
-      photoURL: null,
-    };
-    setUser(mockUser);
-    localStorage.setItem('aos-user', JSON.stringify(mockUser));
+    await signInWithEmailAndPassword(auth, email, password);
   };
 
   const signup = async (email: string, password: string, name: string) => {
-    // Mock signup
-    const mockUser: User = {
-      id: '1',
-      email,
-      displayName: name,
-      photoURL: null,
-    };
-    setUser(mockUser);
-    localStorage.setItem('aos-user', JSON.stringify(mockUser));
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    await updateProfile(cred.user, { displayName: name });
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('aos-user');
+  const loginWithGoogle = async () => {
+    await signInWithPopup(auth, googleProvider);
   };
 
-  if (!mounted) {
-    return <>{children}</>;
-  }
+  const loginWithApple = async () => {
+    await signInWithPopup(auth, appleProvider);
+  };
+
+  const logout = async () => {
+    await signOut(auth);
+  };
 
   return (
     <AuthContext.Provider
       value={{
         user,
         isLoggedIn: !!user,
+        loading,
         login,
         signup,
+        loginWithGoogle,
+        loginWithApple,
         logout,
       }}
     >

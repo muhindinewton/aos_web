@@ -39,7 +39,7 @@ export const secondaryBanners = [
 ];
 
 export const promoTips = [
-  { id: 1, title: 'Boost Your Rankings', description: 'Learn how to rank higher in AOS search results', link: '/tips/rankings', color: 'from-blue-600 to-indigo-600' },
+  { id: 1, title: 'Boost Your Rankings', description: 'Learn how to rank higher in AOS search results', link: '/tips/ranking', color: 'from-blue-600 to-indigo-600' },
   { id: 2, title: 'Marketing Tips', description: 'Grow your sales with proven marketing strategies', link: '/tips/marketing', color: 'from-green-600 to-emerald-500' },
   { id: 3, title: 'Photography Tips', description: 'Take stunning product photos that sell', link: '/tips/photography', color: 'from-pink-600 to-rose-500' },
 ];

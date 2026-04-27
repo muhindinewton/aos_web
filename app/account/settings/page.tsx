@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import ProtectedRoute from '../../components/protected-route';
 import { 
   ArrowLeft, 
   ChevronRight, 
@@ -58,7 +59,7 @@ function SettingItem({ icon: Icon, title, subtitle, value, onClick, href, danger
   return <div onClick={onClick}>{content}</div>;
 }
 
-export default function SettingsPage() {
+function SettingsPage() {
   const { isDarkMode, toggleTheme } = useTheme();
   const { logout, user } = useAuth();
   const { country } = useLocation();
@@ -284,4 +285,8 @@ export default function SettingsPage() {
       {showLocationPicker && <LocationPickerModal onClose={() => setShowLocationPicker(false)} />}
     </div>
   );
+}
+
+export default function SettingsPageWrapper() {
+  return <ProtectedRoute><SettingsPage /></ProtectedRoute>;
 }

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import ProtectedRoute from '../../components/protected-route';
 import {
   ChevronLeft,
   Building2,
@@ -36,7 +37,7 @@ const steps = [
   { title: 'Review', subtitle: 'Submit for verification', icon: BadgeCheck },
 ];
 
-export default function BusinessVerificationPage() {
+function BusinessVerificationPage() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -232,6 +233,10 @@ export default function BusinessVerificationPage() {
       )}
     </>
   );
+}
+
+export default function BusinessVerificationPageWrapper() {
+  return <ProtectedRoute><BusinessVerificationPage /></ProtectedRoute>;
 }
 
 function StepHeader({

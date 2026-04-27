@@ -3,8 +3,9 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, Eye, EyeOff, Check } from 'lucide-react';
+import ProtectedRoute from '../../components/protected-route';
 
-export default function SecurityPage() {
+function SecurityPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'password' | 'security'>('password');
 
@@ -141,6 +142,10 @@ export default function SecurityPage() {
       )}
     </>
   );
+}
+
+export default function SecurityPageWrapper() {
+  return <ProtectedRoute><SecurityPage /></ProtectedRoute>;
 }
 
 function PasswordField({

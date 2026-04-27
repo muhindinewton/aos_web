@@ -13,6 +13,22 @@ const nextConfig = {
       },
     ],
   },
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        net: false,
+        tls: false,
+        fs: false,
+        child_process: false,
+      };
+    }
+    config.externals = config.externals || [];
+    if (Array.isArray(config.externals)) {
+      config.externals.push({ undici: 'undici' });
+    }
+    return config;
+  },
 }
 
 module.exports = nextConfig

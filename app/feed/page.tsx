@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import {
   Search,
   Bell,
@@ -24,6 +25,7 @@ import {
 
 // ── Types ──────────────────────────────────────────────────
 interface FeaturedProduct {
+  id?: string;
   name: string;
   price: string;
   originalPrice?: string;
@@ -67,9 +69,9 @@ const SEED_FEED: FeedItem[] = [
     creatorName: 'ACEHOLO Official', creatorAvatar: 'A',
     likeCount: 2847, commentCount: 156, shareCount: 892,
     featuredProducts: [
-      { name: 'Samsung 55" Smart TV', price: 'Ksh 65,000', originalPrice: 'Ksh 78,000', discount: '17% off' },
-      { name: 'PS5 Console', price: 'Ksh 75,000' },
-      { name: 'Dell Laptop 15"', price: 'Ksh 55,000' },
+      { id: '3', name: 'Samsung 55" Smart TV', price: 'Ksh 65,000', originalPrice: 'Ksh 78,000', discount: '17% off' },
+      { id: '6', name: 'PS5 Console', price: 'Ksh 75,000' },
+      { id: '4', name: 'Dell Laptop 15"', price: 'Ksh 55,000' },
     ],
   },
   {
@@ -81,9 +83,9 @@ const SEED_FEED: FeedItem[] = [
     creatorName: 'Tech Gadgets', creatorAvatar: 'T',
     likeCount: 1825, commentCount: 234, shareCount: 156,
     featuredProducts: [
-      { name: 'iPhone 14 Pro Max', price: 'Ksh 145,000', originalPrice: 'Ksh 165,000', discount: '12% off' },
-      { name: 'Samsung Galaxy S24', price: 'Ksh 125,000' },
-      { name: 'MacBook Pro M2', price: 'Ksh 185,000' },
+      { id: '2', name: 'iPhone 14 Pro Max', price: 'Ksh 145,000', originalPrice: 'Ksh 165,000', discount: '12% off' },
+      { id: '3', name: 'Samsung Galaxy S24', price: 'Ksh 125,000' },
+      { id: '4', name: 'MacBook Pro M2', price: 'Ksh 185,000' },
     ],
   },
   {
@@ -94,10 +96,10 @@ const SEED_FEED: FeedItem[] = [
     isLive: true, viewerCount: 1250,
     likeCount: 3400, commentCount: 256, shareCount: 89,
     featuredProducts: [
-      { name: 'Designer Dress', price: 'Ksh 8,500' },
-      { name: "Men's Suit Set", price: 'Ksh 15,000' },
-      { name: 'Sneakers Nike Air', price: 'Ksh 12,000' },
-      { name: 'Handbag Leather', price: 'Ksh 6,500' },
+      { id: '8', name: 'Designer Dress', price: 'Ksh 8,500' },
+      { id: '9', name: "Men's Suit Set", price: 'Ksh 15,000' },
+      { id: '7', name: 'Sneakers Nike Air', price: 'Ksh 12,000' },
+      { id: '10', name: 'Handbag Leather', price: 'Ksh 6,500' },
     ],
   },
   {
@@ -109,8 +111,8 @@ const SEED_FEED: FeedItem[] = [
     creatorName: 'SneakerHead KE', creatorAvatar: 'S',
     likeCount: 892, commentCount: 145, shareCount: 67,
     featuredProducts: [
-      { name: 'Sneakers Nike Air', price: 'Ksh 12,000' },
-      { name: 'Handbag Leather', price: 'Ksh 6,500' },
+      { id: '7', name: 'Sneakers Nike Air', price: 'Ksh 12,000' },
+      { id: '10', name: 'Handbag Leather', price: 'Ksh 6,500' },
     ],
   },
   {
@@ -122,8 +124,8 @@ const SEED_FEED: FeedItem[] = [
     creatorName: 'AutoKenya', creatorAvatar: 'A',
     likeCount: 2310, commentCount: 198, shareCount: 312,
     featuredProducts: [
-      { name: 'Toyota Axio 2015', price: 'Ksh 1,450,000', originalPrice: 'Ksh 1,650,000', discount: '12% off' },
-      { name: 'Honda CRV 2018', price: 'Ksh 2,800,000', originalPrice: 'Ksh 3,100,000', discount: '10% off' },
+      { id: '1', name: 'Toyota Axio 2015', price: 'Ksh 1,450,000', originalPrice: 'Ksh 1,650,000', discount: '12% off' },
+      { id: '12', name: 'Honda CRV 2018', price: 'Ksh 2,800,000', originalPrice: 'Ksh 3,100,000', discount: '10% off' },
     ],
   },
   {
@@ -135,10 +137,10 @@ const SEED_FEED: FeedItem[] = [
     creatorName: 'FitGear Africa', creatorAvatar: 'F',
     likeCount: 3780, commentCount: 420, shareCount: 178,
     featuredProducts: [
-      { name: 'Gym Equipment Set', price: 'Ksh 120,000' },
-      { name: 'Treadmill Pro', price: 'Ksh 95,000' },
-      { name: 'Dumbbell Set 50kg', price: 'Ksh 18,000' },
-      { name: 'Exercise Bike', price: 'Ksh 35,000' },
+      { id: '15', name: 'Gym Equipment Set', price: 'Ksh 120,000' },
+      { id: '16', name: 'Treadmill Pro', price: 'Ksh 95,000' },
+      { id: '17', name: 'Dumbbell Set 50kg', price: 'Ksh 18,000' },
+      { id: '18', name: 'Exercise Bike', price: 'Ksh 35,000' },
     ],
   },
   {
@@ -150,8 +152,8 @@ const SEED_FEED: FeedItem[] = [
     isLive: true, viewerCount: 847,
     likeCount: 2100, commentCount: 534, shareCount: 67,
     featuredProducts: [
-      { name: 'Baby Stroller Deluxe', price: 'Ksh 18,000', originalPrice: 'Ksh 22,000', discount: '18% off' },
-      { name: 'Air Conditioner 24K BTU', price: 'Ksh 48,000', originalPrice: 'Ksh 58,000', discount: '17% off' },
+      { id: '20', name: 'Baby Stroller Deluxe', price: 'Ksh 18,000', originalPrice: 'Ksh 22,000', discount: '18% off' },
+      { id: '21', name: 'Air Conditioner 24K BTU', price: 'Ksh 48,000', originalPrice: 'Ksh 58,000', discount: '17% off' },
     ],
   },
 ];
@@ -418,7 +420,7 @@ function FullScreenView({ item, allItems, onClose }: { item: FeedItem; allItems:
                     </p>
                     <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1" style={{ height: 100 }}>
                       {fi.featuredProducts.map((p, pi) => (
-                        <div key={pi} className="flex-shrink-0 w-64 h-full bg-white rounded-xl p-2 flex items-center gap-2">
+                        <Link key={pi} href={p.id ? `/product/${p.id}` : `/shop?q=${encodeURIComponent(p.name)}`} onClick={e => e.stopPropagation()} className="flex-shrink-0 w-64 h-full bg-white rounded-xl p-2 flex items-center gap-2 hover:shadow-md transition-shadow">
                           <img
                             src={`https://picsum.photos/seed/prod${fi.id}${pi}/70/70`}
                             alt={p.name}
@@ -437,7 +439,7 @@ function FullScreenView({ item, allItems, onClose }: { item: FeedItem; allItems:
                           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
                             <ShoppingCart className="w-4 h-4 text-white" />
                           </div>
-                        </div>
+                        </Link>
                       ))}
                     </div>
                   </div>
@@ -497,47 +499,46 @@ function FeedCard({ item, onTap }: { item: FeedItem; onTap: () => void }) {
   return (
     <button
       onClick={onTap}
-      className="w-full text-left bg-surface rounded-xl overflow-hidden shadow-sm border border-theme hover:shadow-md transition-shadow mb-2"
+      className="w-full text-left rounded-2xl overflow-hidden bg-surface shadow-sm border border-theme hover:shadow-md transition-shadow mb-2 block"
     >
-      {/* Thumbnail */}
-      <div className="relative" style={{ height: 220 }}>
-        <img src={item.videoUrl} alt="" className="w-full h-full object-cover" />
+      {/* Portrait thumbnail */}
+      <div className="relative aspect-[3/4]">
+        <img src={item.videoUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
+
         {/* Duration badge */}
         {item.duration && (
-          <div className="absolute top-2 left-2 flex items-center gap-1 px-1.5 py-0.5 rounded bg-black/60">
+          <div className="absolute top-2.5 left-2.5 flex items-center gap-1 px-2 py-1 rounded-lg bg-black/55 backdrop-blur-sm">
             <Play className="w-2.5 h-2.5 text-white" fill="white" />
-            <span className="text-white text-[10px] font-medium">{item.duration}</span>
+            <span className="text-white text-[10px] font-semibold">{item.duration}</span>
           </div>
         )}
         {/* LIVE badge */}
         {item.isLive && (
-          <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded bg-primary">
+          <div className="absolute top-2.5 left-2.5 flex items-center gap-1 px-2 py-1 rounded-lg bg-primary">
             <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
             <span className="text-white text-[10px] font-bold tracking-wide">LIVE</span>
           </div>
         )}
-        {/* Viewer count (live only) */}
+        {/* Viewer count */}
         {item.isLive && item.viewerCount && (
-          <div className="absolute top-2 right-2 flex items-center gap-1 px-1.5 py-0.5 rounded bg-black/60">
+          <div className="absolute top-2.5 right-2.5 flex items-center gap-1 px-2 py-1 rounded-lg bg-black/55 backdrop-blur-sm">
             <Eye className="w-2.5 h-2.5 text-white" />
-            <span className="text-white text-[10px] font-medium">{fmt(item.viewerCount)}</span>
+            <span className="text-white text-[10px] font-semibold">{fmt(item.viewerCount)}</span>
           </div>
         )}
       </div>
 
-      {/* Card info */}
-      <div className="p-3">
-        {item.description ? (
-          <p className="text-sm font-medium text-theme-primary line-clamp-2 leading-snug mb-2">{item.description}</p>
-        ) : item.featuredProducts?.[0] ? (
-          <p className="text-sm font-medium text-theme-primary line-clamp-2 leading-snug mb-2">{item.featuredProducts[0].name}</p>
-        ) : null}
-        <div className="flex items-center gap-2">
+      {/* Info below image */}
+      <div className="px-2.5 pt-2 pb-2.5">
+        <p className="text-xs font-medium text-theme-primary line-clamp-2 leading-snug mb-2">
+          {item.description ?? item.featuredProducts?.[0]?.name ?? ''}
+        </p>
+        <div className="flex items-center gap-1.5">
           <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
             <span className="text-primary text-[10px] font-bold">{item.creatorAvatar}</span>
           </div>
-          <span className="text-xs text-theme-muted truncate flex-1">{item.creatorName}</span>
-          <span className="text-xs text-theme-muted">{fmt(item.likeCount)}</span>
+          <span className="text-[11px] text-theme-secondary font-medium truncate flex-1">{item.creatorName}</span>
+          <span className="text-[11px] text-theme-muted">{fmt(item.likeCount)}</span>
           <ThumbsUp className="w-3 h-3 text-theme-muted" />
         </div>
       </div>
@@ -550,7 +551,7 @@ function MasonryGrid({ items, onItemTap }: { items: FeedItem[]; onItemTap: (item
   const left  = items.filter((_, i) => i % 2 === 0);
   const right = items.filter((_, i) => i % 2 !== 0);
   return (
-    <div className="flex gap-2 px-2 pb-6">
+    <div className="flex gap-3 px-4 pb-6">
       <div className="flex-1 flex flex-col">
         {left.map(item => <FeedCard key={item.id} item={item} onTap={() => onItemTap(item)} />)}
       </div>

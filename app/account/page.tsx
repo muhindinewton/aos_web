@@ -40,8 +40,8 @@ export default function AccountPage() {
     setMounted(true);
   }, []);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     setShowLogoutModal(false);
     router.push('/');
   };

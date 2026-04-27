@@ -3,8 +3,9 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft } from 'lucide-react';
+import ProtectedRoute from '../../components/protected-route';
 
-export default function NotificationsPreferencesPage() {
+function NotificationsPreferencesPage() {
   const router = useRouter();
 
   const [pushNotifications, setPushNotifications] = useState(true);
@@ -77,6 +78,10 @@ export default function NotificationsPreferencesPage() {
       </div>
     </div>
   );
+}
+
+export default function NotificationsPageWrapper() {
+  return <ProtectedRoute><NotificationsPreferencesPage /></ProtectedRoute>;
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {

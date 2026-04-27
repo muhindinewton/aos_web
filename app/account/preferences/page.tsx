@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight, Languages, MapPin, DollarSign } from 'lucide-react';
+import ProtectedRoute from '../../components/protected-route';
 
 const languages = ['English', 'Swahili', 'French', 'Arabic', 'Portuguese'];
 const countries = ['Kenya', 'Uganda', 'Tanzania', 'Nigeria', 'Ghana', 'South Africa'];
@@ -10,7 +11,7 @@ const currencies = ['KES', 'UGX', 'TZS', 'NGN', 'GHS', 'ZAR', 'USD'];
 
 type SheetType = 'language' | 'country' | 'currency' | null;
 
-export default function PreferencesPage() {
+function PreferencesPage() {
   const router = useRouter();
   const [language, setLanguage] = useState('English');
   const [country, setCountry] = useState('Kenya');
@@ -150,4 +151,8 @@ export default function PreferencesPage() {
       )}
     </>
   );
+}
+
+export default function PreferencesPageWrapper() {
+  return <ProtectedRoute><PreferencesPage /></ProtectedRoute>;
 }

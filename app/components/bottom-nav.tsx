@@ -1,19 +1,19 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
   Home, 
-  PlusCircle, 
+  Plus,
   MessageCircle, 
-  User, 
   Search, 
   Heart, 
   Bell, 
   MapPin, 
-  ChevronDown, 
-  PlaySquare,
+  ChevronDown,
+  ChevronRight,
+  PlayCircle,
   Sun,
   Moon,
   ShoppingBag,
@@ -21,9 +21,21 @@ import {
   Shield,
   Menu,
   X,
-  Store
+  Store,
+  LayoutGrid,
+  UserCircle,
+  Car,
+  Smartphone,
+  Monitor,
+  Sofa,
+  Shirt,
+  Sparkles,
+  Wrench,
+  Baby,
+  Cat,
 } from 'lucide-react';
 import { useAuth } from '../providers/auth-provider';
+import { categories } from '../lib/data';
 import { useTheme } from '../providers/theme-provider';
 import { useLocation, flagEmoji } from '../providers/location-provider';
 import { LocationPickerModal } from './location-picker-modal';
@@ -41,12 +53,41 @@ export function Navbar() {
     setMounted(true);
   }, []);
 
+  const CAT_ICONS: Record<string, React.ElementType> = {
+    'All Categories': LayoutGrid,
+    'Vehicles':       Car,
+    'Property':       Home,
+    'Phones':         Smartphone,
+    'Electronics':    Monitor,
+    'Furniture':      Sofa,
+    'Fashion':        Shirt,
+    'Beauty':         Sparkles,
+    'Services':       Wrench,
+    'Kids':           Baby,
+    'Pets':           Cat,
+  };
+
+  const catItems = [
+    { label: 'All Categories' },
+    ...categories.filter(c => c.id !== 'all').map(c => ({ label: c.name })),
+  ];
+
+  const [catOpen,       setCatOpen]       = useState(false);
+  const [selectedCat,   setSelectedCat]   = useState('All Categories');
+  const catRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (catRef.current && !catRef.current.contains(e.target as Node)) setCatOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
   const navLinks = [
     { href: '/', label: 'Home' },
-    { href: '/categories', label: 'Categories' },
     { href: '/shop', label: 'Shop' },
     { href: '/feed', label: 'Shorts', badge: 'Live' },
-    { href: '/sell', label: 'Sell' },
   ];
 
   return (
@@ -115,14 +156,46 @@ export function Navbar() {
               {/* Search Bar */}
               <div className="flex-1 max-w-2xl">
                 <div className={`relative flex items-center transition-all duration-200 ${searchFocused ? 'scale-[1.02]' : ''}`}>
-                  <div className="absolute left-0 h-full flex items-center">
-                    <select className="h-full pl-4 pr-2 bg-elevated border-r border-theme rounded-l-xl text-xs font-medium text-theme-secondary cursor-pointer focus:outline-none">
-                      <option>All Categories</option>
-                      <option>Electronics</option>
-                      <option>Fashion</option>
-                      <option>Home & Garden</option>
-                      <option>Vehicles</option>
-                    </select>
+                  {/* Custom category dropdown */}
+                  <div ref={catRef} className="absolute left-0 h-full flex items-center z-50">
+                    <button
+                      onClick={() => setCatOpen(o => !o)}
+                      className="h-full flex items-center gap-1.5 pl-3.5 pr-3 bg-elevated border-r border-theme rounded-l-xl text-xs font-medium text-theme-secondary hover:text-theme-primary transition-colors whitespace-nowrap"
+                    >
+                      {(() => { const Icon = CAT_ICONS[selectedCat] || LayoutGrid; return <Icon className="w-3.5 h-3.5 text-primary flex-shrink-0" />; })()}
+                      <span className="max-w-[88px] truncate">{selectedCat === 'All Categories' ? 'All' : selectedCat}</span>
+                      <ChevronDown className={`w-3 h-3 flex-shrink-0 transition-transform duration-200 ${catOpen ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    {catOpen && (
+                      <div className="absolute top-full left-0 mt-1 w-52 bg-surface border border-theme rounded-2xl shadow-2xl overflow-hidden">
+                        <div className="p-1.5 max-h-72 overflow-y-auto hide-scrollbar">
+                          {catItems.map(({ label }) => {
+                            const Icon = CAT_ICONS[label] || LayoutGrid;
+                            const active = selectedCat === label;
+                            return (
+                              <button
+                                key={label}
+                                onClick={() => { setSelectedCat(label); setCatOpen(false); }}
+                                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-medium transition-colors ${
+                                  active
+                                    ? 'bg-primary text-white'
+                                    : 'text-theme-primary hover:bg-elevated'
+                                }`}
+                              >
+                                <div className={`w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                                  active ? 'bg-white/20' : 'bg-primary/10'
+                                }`}>
+                                  <Icon className={`w-3.5 h-3.5 ${active ? 'text-white' : 'text-primary'}`} />
+                                </div>
+                                {label}
+                                {active && <ChevronRight className="w-3 h-3 ml-auto opacity-70" />}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <input
                     type="text"
@@ -160,28 +233,26 @@ export function Navbar() {
                   <MessageCircle className="w-5 h-5" />
                   <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center text-[10px] font-bold text-white">2</span>
                 </Link>
-                <Link
-                  href="/account"
-                  className="relative p-2.5 rounded-xl hover:bg-elevated text-theme-secondary hover:text-theme-primary transition-colors group"
-                  title="My Account"
-                >
-                  {mounted && isLoggedIn && user ? (
+                {mounted && isLoggedIn && user && (
+                  <Link
+                    href="/account"
+                    className="relative p-2.5 rounded-xl hover:bg-elevated text-theme-secondary hover:text-theme-primary transition-colors group"
+                    title="My Account"
+                  >
                     <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center">
                       <span className="text-white text-xs font-bold leading-none">
                         {(user.displayName || user.email || 'U')[0].toUpperCase()}
                       </span>
                     </div>
-                  ) : (
-                    <User className="w-5 h-5" />
-                  )}
-                </Link>
+                  </Link>
+                )}
                 <div className="w-px h-6 bg-theme mx-2" />
                 <Link
                   href="/sell"
                   className="flex items-center gap-2 bg-gradient-to-r from-primary to-red-600 hover:from-red-600 hover:to-primary text-white pl-4 pr-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:scale-[1.02]"
                 >
                   <div className="w-6 h-6 bg-white/20 rounded-lg flex items-center justify-center">
-                    <PlusCircle className="w-4 h-4" />
+                    <Plus className="w-4 h-4" />
                   </div>
                   Sell Now
                 </Link>
@@ -273,22 +344,23 @@ export function Navbar() {
 
       {/* Mobile Bottom Nav */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-surface border-t border-theme z-50 shadow-nav">
-        <div className="flex items-center justify-around h-16 max-w-lg mx-auto">
+        <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-2">
           {[
             { href: '/', label: 'Home', icon: Home, special: false },
-            { href: '/feed', label: 'Shorts', icon: PlaySquare, special: false },
-            { href: '/sell', label: 'Sell', icon: PlusCircle, special: true },
-            { href: '/contact', label: 'Chat', icon: MessageCircle, special: false },
-            { href: '/account', label: 'Account', icon: User, special: false },
+            { href: '/categories', label: 'Shop', icon: LayoutGrid, special: false },
+            { href: '/sell', label: 'Sell', icon: Plus, special: true },
+            { href: '/feed', label: 'Feed', icon: PlayCircle, special: false },
+            { href: '/account', label: 'Account', icon: UserCircle, special: false },
           ].map((item) => {
             const isActive = pathname === item.href;
             const Icon = item.icon;
             if (item.special) {
               return (
-                <Link key={item.href} href={item.href} className="relative -top-3">
-                  <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center shadow-lg">
-                    <Icon className="w-6 h-6 text-white" />
+                <Link key={item.href} href={item.href} className="flex flex-col items-center gap-1 flex-1">
+                  <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center shadow-lg shadow-primary/30">
+                    <Icon className="w-5 h-5 text-white" strokeWidth={2.5} />
                   </div>
+                  <span className="text-[10px] font-semibold text-theme-primary">Sell</span>
                 </Link>
               );
             }
@@ -296,10 +368,19 @@ export function Navbar() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex flex-col items-center gap-0.5 py-1 ${isActive ? 'text-primary' : 'text-theme-muted'}`}
+                className="flex flex-col items-center gap-1 flex-1"
               >
-                <Icon className="w-5 h-5" />
-                <span className="text-[10px] font-medium">{item.label}</span>
+                <div className={`p-2 rounded-xl transition-colors ${
+                  isActive ? 'bg-primary/10' : ''
+                }`}>
+                  <Icon
+                    className={`w-5 h-5 transition-colors ${isActive ? 'text-primary' : 'text-theme-muted'}`}
+                    strokeWidth={isActive ? 2.5 : 1.5}
+                  />
+                </div>
+                <span className={`text-[10px] font-medium transition-colors ${
+                  isActive ? 'text-primary font-semibold' : 'text-theme-muted'
+                }`}>{item.label}</span>
               </Link>
             );
           })}

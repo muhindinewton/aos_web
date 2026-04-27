@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import { ChevronRight, Zap, Car, Smartphone, Monitor, Sofa, Shirt, Sparkles, Wrench, Home as HomeIcon, Baby, Cat, ChevronLeft, Flame, Award, Package, Gift, ArrowRight, Grid3X3, Compass, Play, Radio, Eye } from 'lucide-react';
+import { ChevronRight, Zap, Car, Smartphone, Monitor, Sofa, Shirt, Sparkles, Wrench, Home as HomeIcon, Baby, Cat, ChevronLeft, Flame, Award, Package, Gift, ArrowRight, Grid3X3, Compass, Play, Radio, Eye, Activity, Leaf, Hammer, Briefcase, Users, UtensilsCrossed, Music, BookOpen, Gamepad2, Plane, HeartPulse, TrendingUp, Palette, ChevronsDown, Truck, ShieldCheck } from 'lucide-react';
 import { products, categories, services, promoTips } from './lib/data';
 import { ProductCard } from './components/product-card';
 
@@ -88,16 +88,11 @@ function SectionHeader({ title, href, icon: Icon }: { title: string; href: strin
 function AutoScrollRow({ children, speed = 3000 }: { children: React.ReactNode; speed?: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const paused = useRef(false);
-  const [cardWidth, setCardWidth] = useState(192);
 
-  useEffect(() => {
-    const updateCardWidth = () => {
-      const isMd = window.innerWidth >= 768;
-      setCardWidth(isMd ? 232 : 192);
-    };
-    updateCardWidth();
-    window.addEventListener('resize', updateCardWidth);
-    return () => window.removeEventListener('resize', updateCardWidth);
+  const getCardWidth = useCallback(() => {
+    const el = ref.current;
+    const first = el?.firstElementChild as HTMLElement | null;
+    return first ? first.offsetWidth + 12 : 200; // 12 = gap-3
   }, []);
 
   useEffect(() => {
@@ -111,29 +106,23 @@ function AutoScrollRow({ children, speed = 3000 }: { children: React.ReactNode; 
     el.addEventListener('touchend', resume);
     const t = setInterval(() => {
       if (!el || paused.current) return;
+      const cw = getCardWidth();
       const maxScroll = el.scrollWidth - el.clientWidth;
       if (el.scrollLeft >= maxScroll - 2) {
         el.scrollTo({ left: 0, behavior: 'smooth' });
       } else {
-        el.scrollBy({ left: cardWidth, behavior: 'smooth' });
+        el.scrollBy({ left: cw, behavior: 'smooth' });
       }
     }, speed);
     return () => { clearInterval(t); el.removeEventListener('pointerdown', pause); el.removeEventListener('pointerup', resume); el.removeEventListener('touchstart', pause); el.removeEventListener('touchend', resume); };
-  }, [speed, cardWidth]);
+  }, [speed, getCardWidth]);
 
-  const scrollLeft = () => {
-    const el = ref.current;
-    if (el) el.scrollBy({ left: -cardWidth, behavior: 'smooth' });
-  };
-
-  const scrollRight = () => {
-    const el = ref.current;
-    if (el) el.scrollBy({ left: cardWidth, behavior: 'smooth' });
-  };
+  const scrollLeft  = () => ref.current?.scrollBy({ left: -getCardWidth(), behavior: 'smooth' });
+  const scrollRight = () => ref.current?.scrollBy({ left:  getCardWidth(), behavior: 'smooth' });
 
   return (
     <div className="relative group">
-      <div ref={ref} className="flex gap-3 overflow-x-auto hide-scrollbar pb-1 -mx-4 px-4 md:-mx-6 md:px-6 scroll-smooth">
+      <div ref={ref} className="flex gap-3 overflow-x-auto hide-scrollbar pb-1 scroll-smooth snap-x snap-mandatory">
         {children}
       </div>
       <button onClick={scrollLeft} className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-black/50 backdrop-blur-sm text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70 shadow-lg -ml-2 md:-ml-4">
@@ -153,59 +142,73 @@ interface SlideData {
   description: string;
   badge?: string;
   image?: string;
-  icon?: string;
+  Icon?: React.ElementType;
 }
 
 function BannerContent({ slide, tall }: { slide: SlideData; tall?: boolean }) {
   const TitleTag = tall ? 'h2' : 'h3';
+  const SlideIcon = slide.Icon;
 
   return (
-    <div className="relative z-10 flex h-full w-full items-center justify-center px-4 py-4 md:px-10">
-      <div
-        className={`w-full text-center text-white backdrop-blur-md ${
-          tall
-            ? 'max-w-3xl rounded-[2rem] border border-white/15 bg-white/10 px-6 py-7 shadow-[0_24px_80px_rgba(15,23,42,0.28)] md:px-10 md:py-10'
-            : 'max-w-xl rounded-[1.75rem] border border-white/15 bg-black/10 px-4 py-4 shadow-[0_18px_50px_rgba(15,23,42,0.24)] md:px-7 md:py-6'
-        }`}
-      >
-        <span
-          className={`inline-flex items-center rounded-full border border-white/20 bg-white/15 font-semibold uppercase tracking-[0.24em] text-white/95 ${
-            tall ? 'px-4 py-1.5 text-[10px] md:text-xs' : 'px-3 py-1 text-[9px] md:text-[10px]'
-          }`}
-        >
-          {slide.badge || 'Featured'}
-        </span>
-        <TitleTag
-          className={`mt-3 font-black leading-[0.95] tracking-tight text-white ${
-            tall ? 'text-3xl md:text-5xl' : 'text-xl md:text-2xl'
-          }`}
-        >
-          {slide.title}
-        </TitleTag>
-        <p className={`mt-2 font-semibold text-white/95 ${tall ? 'text-base md:text-xl' : 'text-sm md:text-base'}`}>
-          {slide.subtitle}
-        </p>
-        <p
-          className={`mx-auto mt-2 max-w-2xl text-pretty text-white/75 ${
-            tall ? 'text-sm md:text-base' : 'text-xs md:text-sm'
-          }`}
-        >
-          {slide.description}
-        </p>
-        <Link
-          href="/shop"
-          className={`mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-white font-semibold text-slate-900 transition-all hover:-translate-y-0.5 hover:bg-slate-50 ${
-            tall ? 'px-6 py-3 text-sm md:px-7' : 'px-4 py-2 text-xs md:px-5 md:text-sm'
-          }`}
-        >
-          Shop Now <ArrowRight className={tall ? 'h-4 w-4' : 'h-3.5 w-3.5'} />
-        </Link>
+    <>
+      {/* ── Mobile: compact left-text + right-icon (matches mobile app) ── */}
+      <div className="md:hidden relative z-10 h-full flex items-center px-4 py-3">
+        <div className="flex-1 min-w-0">
+          {slide.badge && (
+            <span className="inline-block bg-white text-slate-800 text-[9px] font-extrabold px-2 py-0.5 rounded-md mb-2 uppercase tracking-wide">
+              {slide.badge}
+            </span>
+          )}
+          <h2 className="text-white font-black text-[19px] leading-tight">{slide.title}</h2>
+          <p className="text-white/90 text-sm font-semibold mt-0.5">{slide.subtitle}</p>
+          <p className="text-white/70 text-xs mt-0.5 line-clamp-1">{slide.description}</p>
+        </div>
+        {SlideIcon && (
+          <div className="w-[68px] h-[68px] bg-white/15 rounded-2xl flex items-center justify-center flex-shrink-0 ml-4">
+            <SlideIcon className="w-9 h-9 text-white/80" />
+          </div>
+        )}
       </div>
-    </div>
+
+      {/* ── Desktop: centered glassmorphism card ── */}
+      <div className="hidden md:flex relative z-10 h-full w-full items-center justify-center px-4 py-4 md:px-10">
+        <div
+          className={`w-full text-center text-white backdrop-blur-md ${
+            tall
+              ? 'max-w-3xl rounded-[2rem] border border-white/15 bg-white/10 px-6 py-7 shadow-[0_24px_80px_rgba(15,23,42,0.28)] md:px-10 md:py-10'
+              : 'max-w-xl rounded-[1.75rem] border border-white/15 bg-black/10 px-4 py-4 shadow-[0_18px_50px_rgba(15,23,42,0.24)] md:px-7 md:py-6'
+          }`}
+        >
+          <span className={`inline-flex items-center rounded-full border border-white/20 bg-white/15 font-semibold uppercase tracking-[0.24em] text-white/95 ${
+            tall ? 'px-4 py-1.5 text-[10px] md:text-xs' : 'px-3 py-1 text-[9px] md:text-[10px]'
+          }`}>
+            {slide.badge || 'Featured'}
+          </span>
+          <TitleTag className={`mt-3 font-black leading-[0.95] tracking-tight text-white ${
+            tall ? 'text-3xl md:text-5xl' : 'text-xl md:text-2xl'
+          }`}>
+            {slide.title}
+          </TitleTag>
+          <p className={`mt-2 font-semibold text-white/95 ${tall ? 'text-base md:text-xl' : 'text-sm md:text-base'}`}>
+            {slide.subtitle}
+          </p>
+          <p className={`mx-auto mt-2 max-w-2xl text-pretty text-white/75 ${
+            tall ? 'text-sm md:text-base' : 'text-xs md:text-sm'
+          }`}>
+            {slide.description}
+          </p>
+          <Link href="/shop" className={`mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-white font-semibold text-slate-900 transition-all hover:-translate-y-0.5 hover:bg-slate-50 ${
+            tall ? 'px-6 py-3 text-sm md:px-7' : 'px-4 py-2 text-xs md:px-5 md:text-sm'
+          }`}>
+            Shop Now <ArrowRight className={tall ? 'h-4 w-4' : 'h-3.5 w-3.5'} />
+          </Link>
+        </div>
+      </div>
+    </>
   );
 }
 
-function Slider({ slides, interval = 4000, tall }: { slides: SlideData[]; interval?: number; tall?: boolean }) {
+function Slider({ slides, interval = 4000, tall, fill }: { slides: SlideData[]; interval?: number; tall?: boolean; fill?: boolean }) {
   const [idx, setIdx] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const touchStart = useRef(0);
@@ -225,60 +228,59 @@ function Slider({ slides, interval = 4000, tall }: { slides: SlideData[]; interv
     if (Math.abs(diff) > 50) { diff > 0 ? next() : prev(); }
   };
 
-  return (
-    <div className={`relative ${tall ? 'h-52 md:h-72 lg:h-80' : 'h-40 md:h-48'} rounded-3xl overflow-hidden shadow-elevated group`} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-      {/* Background layers */}
-      {slides.map((s, i) => (
-        <div 
+  const dots = (
+    <div className="flex justify-center items-center gap-1.5">
+      {slides.map((_, i) => (
+        <button
           key={i}
-          className={`absolute inset-0 transition-opacity duration-700 ease-out ${i === idx ? 'opacity-100' : 'opacity-0'}`} 
-          style={{ background: s.bg }}
-        >
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.15),transparent_50%)]" />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20" />
-        </div>
-      ))}
-
-      {/* Content with fade transition */}
-      {slides.map((s, i) => (
-        <div 
-          key={i} 
-          className={`absolute inset-0 transition-all duration-500 ease-out ${
-            i === idx ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
+          onClick={() => go(i)}
+          className={`rounded-full transition-all duration-300 ${
+            i === idx ? 'w-5 h-2 bg-primary shadow-sm' : 'w-2 h-2 bg-border hover:bg-theme-muted'
           }`}
-        >
-          <BannerContent slide={s} tall={tall} />
-        </div>
+        />
       ))}
+    </div>
+  );
 
-      {/* Navigation arrows */}
-      <button 
-        onClick={prev} 
-        className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/90 dark:bg-black/50 backdrop-blur-sm text-slate-800 dark:text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:scale-110 shadow-lg"
-      >
-        <ChevronLeft className="w-5 h-5" />
-      </button>
-      <button 
-        onClick={next} 
-        className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/90 dark:bg-black/50 backdrop-blur-sm text-slate-800 dark:text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:scale-110 shadow-lg"
-      >
-        <ChevronRight className="w-5 h-5" />
-      </button>
+  return (
+    <div className={fill ? 'relative h-full' : ''}>
+      <div className={`relative ${fill ? 'h-full rounded-none' : tall ? 'h-[116px] md:h-72 lg:h-80 rounded-3xl' : 'h-40 md:h-48 rounded-3xl'} overflow-hidden shadow-elevated group`} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+        {/* Sliding track */}
+        <div
+          className="flex h-full transition-transform duration-500 ease-in-out"
+          style={{ transform: `translateX(-${idx * (100 / slides.length)}%)`, width: `${slides.length * 100}%` }}
+        >
+          {slides.map((s, i) => (
+            <div
+              key={i}
+              className="relative h-full flex-shrink-0"
+              style={{ width: `${100 / slides.length}%`, background: s.bg }}
+            >
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.15),transparent_50%)]" />
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20" />
+              <BannerContent slide={s} tall={tall} />
+            </div>
+          ))}
+        </div>
 
-      {/* Dots indicator */}
-      <div className={`absolute ${tall ? 'bottom-4' : 'bottom-3'} left-1/2 -translate-x-1/2 flex gap-1.5 z-20 bg-black/20 backdrop-blur-sm rounded-full px-2 py-1.5`}>
-        {slides.map((_, i) => (
-          <button 
-            key={i} 
-            onClick={() => go(i)} 
-            className={`rounded-full transition-all duration-300 ${
-              i === idx 
-                ? 'w-6 h-1.5 bg-white shadow-sm' 
-                : 'w-1.5 h-1.5 bg-white/50 hover:bg-white/70'
-            }`} 
-          />
-        ))}
+        {/* Navigation arrows */}
+        <button onClick={prev} className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/90 dark:bg-black/50 backdrop-blur-sm text-slate-800 dark:text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:scale-110 shadow-lg">
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+        <button onClick={next} className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/90 dark:bg-black/50 backdrop-blur-sm text-slate-800 dark:text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:scale-110 shadow-lg">
+          <ChevronRight className="w-5 h-5" />
+        </button>
+
+        {/* Dots overlaid — fill (desktop sidebar) mode only */}
+        {fill && (
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 bg-black/20 backdrop-blur-sm rounded-full px-2 py-1.5">
+            {dots}
+          </div>
+        )}
       </div>
+
+      {/* Dots below the banner — all non-fill modes */}
+      {!fill && <div className="mt-2.5">{dots}</div>}
     </div>
   );
 }
@@ -347,32 +349,36 @@ const secSlides: SlideData[] = [
 
 const centeredHeroSlides: SlideData[] = [
   {
-    bg: 'linear-gradient(135deg, #C1121F 0%, #8B0000 40%, #FF4500 100%)',
-    badge: 'Flash Sale',
-    title: 'Up to 70% Off',
-    subtitle: 'Mega Savings Event',
-    description: 'Biggest deals of the season, with limited-time savings across the most wanted categories.',
+    bg: 'linear-gradient(135deg, #1565C0 0%, #1976D2 100%)',
+    badge: 'NEW',
+    title: 'Free Delivery',
+    subtitle: 'On Orders Above Ksh 5,000',
+    description: 'Limited Time Offer',
+    Icon: Truck,
   },
   {
-    bg: 'linear-gradient(135deg, #0F2027 0%, #203A43 40%, #2C5364 100%)',
-    badge: 'New Arrivals',
-    title: 'Latest Collections',
-    subtitle: 'Fresh Products Daily',
-    description: 'Discover trending items before everyone else and stay ahead of what shoppers want next.',
+    bg: 'linear-gradient(135deg, #C1121F 0%, #8B0000 40%, #FF4500 100%)',
+    badge: 'SALE',
+    title: 'Up to 70% Off',
+    subtitle: 'Mega Savings Event',
+    description: 'Biggest deals of the season — limited time only!',
+    Icon: Zap,
   },
   {
     bg: 'linear-gradient(135deg, #134E5E 0%, #1A6B3C 50%, #71B280 100%)',
-    badge: 'Verified Sellers',
+    badge: 'TRUSTED',
     title: 'Buy with Confidence',
-    subtitle: 'Trusted & Verified Listings',
-    description: 'Every seller is reviewed by real buyers so you can shop with complete peace of mind.',
+    subtitle: 'Verified Sellers Only',
+    description: 'Every seller reviewed by real buyers',
+    Icon: ShieldCheck,
   },
   {
     bg: 'linear-gradient(135deg, #4A0E4E 0%, #7B1FA2 50%, #CE93D8 100%)',
-    badge: 'Limited Time',
+    badge: 'HOT',
     title: 'Electronics Week',
     subtitle: 'Tech at Unbeatable Prices',
-    description: 'Top brands and standout value, wrapped in a sharper banner that keeps every message centered.',
+    description: 'Top brands, lowest prices — shop now!',
+    Icon: Monitor,
   },
 ];
 
@@ -407,6 +413,55 @@ const centeredSecondarySlides: SlideData[] = [
   },
 ];
 
+const SIDEBAR_CATS = [
+  { name: 'Phones & Accessories', dataName: 'Phones', Icon: Smartphone,
+    subs: ['Mobile Phones', 'Tablets', 'Smart Watches', 'Headphones', 'Power Banks', 'Phone Cases', 'Chargers & Cables', 'Phone Accessories', 'Screen Protectors'] },
+  { name: 'Vehicles', dataName: 'Vehicles', Icon: Car,
+    subs: ['Cars', 'Motorbikes', 'Trucks & Trailers', 'Buses & Microbuses', 'Vehicle Parts', 'Car Accessories', 'Tyres & Rims', 'Watercraft', 'Heavy Equipment'] },
+  { name: 'Property', dataName: null, Icon: HomeIcon,
+    subs: ['Houses for Rent', 'Houses for Sale', 'Apartments', 'Land & Plots', 'Office Space', 'Warehouses', 'Commercial', 'Short Stay', 'Event Venues'] },
+  { name: 'Electronics', dataName: 'Electronics', Icon: Monitor,
+    subs: ['Laptops', 'Computers', 'TV & DVD', 'Audio & Music', 'Video Games', 'Cameras', 'Printers', 'Networking', 'Storage Devices'] },
+  { name: 'Home & Furniture', dataName: 'Furniture', Icon: Sofa,
+    subs: ['Furniture', 'Home Decor', 'Kitchen', 'Appliances', 'Bedding', 'Garden', 'Lighting', 'Storage', 'Bathroom'] },
+  { name: 'Fashion', dataName: 'Fashion', Icon: Shirt,
+    subs: ["Men's Wear", "Women's Wear", "Men's Shoes", "Women's Shoes", 'Bags', 'Watches', 'Jewelry', 'Kids Wear', 'Accessories'] },
+  { name: 'Beauty & Health', dataName: 'Beauty', Icon: Sparkles,
+    subs: ['Makeup', 'Skin Care', 'Hair Care', 'Fragrances', 'Personal Care', 'Vitamins', 'Medical', 'Fitness', 'Health'] },
+  { name: 'Services', dataName: 'Services', Icon: Wrench,
+    subs: ['Automotive', 'IT Services', 'Cleaning', 'Events', 'Moving', 'Tours', 'Education', 'Business', 'Beauty Services'] },
+  { name: 'Sports & Leisure', dataName: null, Icon: Activity,
+    subs: ['Sports Gear', 'Gym Equipment', 'Instruments', 'Books', 'Bicycles', 'Camping', 'Toys', 'Art', 'Collectibles'] },
+  { name: 'Babies & Kids', dataName: null, Icon: Baby,
+    subs: ['Baby Clothing', 'Kids Clothing', 'Strollers', 'Toys', 'Baby Gear', 'Feeding', 'Bathing', 'Baby Shoes', 'Maternity'] },
+  { name: 'Agriculture', dataName: null, Icon: Leaf,
+    subs: ['Farm Machinery', 'Livestock', 'Seeds', 'Crops', 'Poultry', 'Fish', 'Farm Tools', 'Fertilizers', 'Irrigation'] },
+  { name: 'Pets', dataName: null, Icon: Cat,
+    subs: ['Dogs', 'Cats', 'Birds', 'Fish', 'Pet Food', 'Pet Accessories', 'Grooming', 'Cages', 'Reptiles'] },
+  { name: 'Repair & Hardware', dataName: null, Icon: Hammer,
+    subs: ['Building Materials', 'Plumbing', 'Electrical', 'Hand Tools', 'Power Tools', 'Roofing', 'Flooring', 'Painting', 'Hardware'] },
+  { name: 'Commercial & Office', dataName: null, Icon: Briefcase,
+    subs: ['Manufacturing', 'Restaurant Equipment', 'Store Equipment', 'Office Furniture', 'Medical Equipment', 'Salon Equipment', 'Printing', 'Stationery', 'Packaging'] },
+  { name: 'Jobs', dataName: null, Icon: Users,
+    subs: ['Accounting', 'Admin & Secretarial', 'Engineering', 'Healthcare', 'IT & Tech', 'Marketing', 'Sales', 'Teaching', 'Hospitality'] },
+  { name: 'Food & Beverages', dataName: null, Icon: UtensilsCrossed,
+    subs: ['Groceries', 'Fresh Produce', 'Snacks & Confectionery', 'Beverages', 'Dairy & Eggs', 'Bakery', 'Meat & Poultry', 'Frozen Foods', 'Organic & Natural'] },
+  { name: 'Music & Instruments', dataName: null, Icon: Music,
+    subs: ['Guitars', 'Keyboards & Pianos', 'Drums & Percussion', 'Wind Instruments', 'DJ Equipment', 'Studio Equipment', 'Microphones', 'Amplifiers', 'Music Accessories'] },
+  { name: 'Books & Stationery', dataName: null, Icon: BookOpen,
+    subs: ['Textbooks', 'Fiction & Literature', 'Business & Finance', 'Children Books', 'Magazines', 'Pens & Pencils', 'Notebooks', 'Art Supplies', 'Office Stationery'] },
+  { name: 'Gaming', dataName: null, Icon: Gamepad2,
+    subs: ['Video Games', 'Gaming Consoles', 'Controllers & Joysticks', 'Gaming Chairs', 'Gaming Monitors', 'Headsets', 'Gaming PCs', 'VR Headsets', 'Gaming Accessories'] },
+  { name: 'Travel & Tourism', dataName: null, Icon: Plane,
+    subs: ['Flight Tickets', 'Hotel Bookings', 'Holiday Packages', 'Safari Tours', 'Car Hire', 'Travel Insurance', 'Cruise Packages', 'Adventure Activities', 'Travel Accessories'] },
+  { name: 'Healthcare', dataName: null, Icon: HeartPulse,
+    subs: ['Medical Equipment', 'Wheelchairs & Mobility', 'Hearing Aids', 'Vision Care', 'Orthopaedic', 'Diagnostic Tools', 'Surgical Supplies', 'First Aid', 'Dental Care'] },
+  { name: 'Business & Investment', dataName: null, Icon: TrendingUp,
+    subs: ['Business for Sale', 'Franchise Opportunities', 'Investment Opportunities', 'Tenders & Contracts', 'Business Equipment', 'Financial Services', 'Legal Services', 'Accounting Services', 'Consulting'] },
+  { name: 'Art & Crafts', dataName: null, Icon: Palette,
+    subs: ['Paintings', 'Sculptures', 'Photography', 'Handmade Jewelry', 'Pottery & Ceramics', 'Textile Art', 'Prints', 'Craft Supplies', 'Digital Art'] },
+];
+
 export default function HomePage() {
   const flash = products.filter(p => p.isOffer);
   const electronics = products.filter(p => p.category === 'Electronics');
@@ -414,13 +469,120 @@ export default function HomePage() {
   const fashion = products.filter(p => p.category === 'Fashion');
   const beauty = products.filter(p => p.category === 'Beauty');
   const kids = products.filter(p => p.category === 'Kids');
+  const [hoveredCat, setHoveredCat] = useState<number | null>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const [sidebarCanScroll, setSidebarCanScroll] = useState(true);
+
+  const handleSidebarScroll = useCallback(() => {
+    const el = sidebarRef.current;
+    if (!el) return;
+    setSidebarCanScroll(el.scrollTop + el.clientHeight < el.scrollHeight - 4);
+  }, []);
+
+  useEffect(() => { handleSidebarScroll(); }, [handleSidebarScroll]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-5">
 
-      {/* ===== HERO CAROUSEL ===== */}
+      {/* ===== HERO: Sidebar + Flyout + Banner (desktop) / Banner only (mobile) ===== */}
       <section className="mb-6">
-        <Slider slides={centeredHeroSlides} interval={3000} tall />
+
+        {/* ── Desktop layout ── */}
+        <div
+          className="hidden md:flex h-[360px] relative rounded-2xl shadow-elevated"
+          onMouseLeave={() => setHoveredCat(null)}
+        >
+          {/* Category Sidebar */}
+          <div className="w-52 flex-shrink-0 relative z-10 flex flex-col rounded-l-2xl overflow-hidden">
+            {/* Red header */}
+            <div className="bg-primary px-4 py-2.5 flex-shrink-0">
+              <p className="text-white font-bold text-[13px] uppercase tracking-wider">Categories</p>
+            </div>
+            {/* White list */}
+            <div
+              ref={sidebarRef}
+              onScroll={handleSidebarScroll}
+              className="flex-1 bg-white dark:bg-surface overflow-y-auto hide-scrollbar"
+            >
+            {SIDEBAR_CATS.map((cat, i) => (
+              <div
+                key={cat.name}
+                onMouseEnter={() => setHoveredCat(i)}
+                className={`flex items-center gap-2.5 px-4 py-[10px] cursor-pointer transition-colors select-none border-b border-gray-100 dark:border-theme ${
+                  hoveredCat === i ? 'bg-primary/8' : 'hover:bg-primary/5'
+                }`}
+              >
+                <cat.Icon className={`w-4 h-4 flex-shrink-0 ${hoveredCat === i ? 'text-primary' : 'text-gray-500 dark:text-theme-muted'}`} />
+                <span className={`text-[12.5px] font-medium leading-tight flex-1 line-clamp-1 ${
+                  hoveredCat === i ? 'text-primary font-semibold' : 'text-gray-800 dark:text-theme-primary'
+                }`}>{cat.name}</span>
+                <ChevronRight className={`w-3.5 h-3.5 flex-shrink-0 ${hoveredCat === i ? 'text-primary' : 'text-gray-400'}`} />
+              </div>
+            ))}
+            </div>
+            {/* Scroll-more fade + chevron */}
+            {sidebarCanScroll && (
+              <div className="absolute bottom-0 left-0 right-0 h-14 pointer-events-none flex flex-col items-center justify-end pb-2"
+                style={{ background: 'linear-gradient(to top, white 0%, transparent 100%)' }}
+              >
+                <ChevronsDown className="w-4 h-4 text-gray-400 animate-bounce" />
+              </div>
+            )}
+          </div>
+
+          {/* Subcategory Flyout — overlays the banner */}
+          {hoveredCat !== null && (
+            <div className="absolute left-52 top-0 h-full z-20 w-[500px] bg-surface border-y border-r border-theme shadow-2xl flex flex-col">
+              <div className="px-4 py-2.5 border-b border-theme flex-shrink-0 flex items-center justify-between">
+                <p className="text-[11px] font-bold text-primary uppercase tracking-wider">
+                  {SIDEBAR_CATS[hoveredCat].name}
+                </p>
+                <Link
+                  href="/categories"
+                  className="text-[10px] text-primary font-semibold flex items-center gap-0.5 hover:underline"
+                >
+                  See all <ChevronRight className="w-3 h-3" />
+                </Link>
+              </div>
+              <div className="flex-1 overflow-y-auto p-3">
+                <div className="grid grid-cols-5 gap-x-2 gap-y-3">
+                  {SIDEBAR_CATS[hoveredCat].subs.map(sub => {
+                    const seed = sub.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+                    return (
+                      <Link
+                        key={sub}
+                        href={`/subcategory?cat=${encodeURIComponent(SIDEBAR_CATS[hoveredCat!].name)}&sub=${encodeURIComponent(sub)}`}
+                        className="flex flex-col items-center gap-1.5 group"
+                      >
+                        <div className="w-full rounded-lg overflow-hidden bg-elevated border border-theme p-1.5" style={{ aspectRatio: '1/1' }}>
+                          <img
+                            src={`https://picsum.photos/seed/${seed}/80/80`}
+                            alt={sub}
+                            className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-200"
+                          />
+                        </div>
+                        <span className="text-[10px] text-theme-secondary group-hover:text-primary font-medium text-center leading-tight line-clamp-2 w-full">
+                          {sub}
+                        </span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Hero Banner fills remaining space */}
+          <div className="flex-1 min-w-0 h-full rounded-r-2xl overflow-hidden">
+            <Slider slides={centeredHeroSlides} interval={3000} fill />
+          </div>
+        </div>
+
+        {/* ── Mobile layout: banner only ── */}
+        <div className="md:hidden">
+          <Slider slides={centeredHeroSlides} interval={3000} tall />
+        </div>
+
       </section>
 
       {/* ===== QUICK ACTIONS ===== */}
@@ -440,10 +602,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ===== CATEGORIES ===== */}
-      <section className="mb-6">
+      {/* ===== CATEGORIES (mobile only — desktop uses sidebar) ===== */}
+      <section className="mb-6 md:hidden">
         <SectionHeader title="Categories" href="/categories" icon={Grid3X3} />
-        <div className="grid grid-cols-5 sm:grid-cols-5 md:grid-cols-10 gap-3 md:gap-4">
+        <div className="grid grid-cols-5 gap-3">
           {categories.slice(1).map((cat) => {
             const Icon = categoryIcons[cat.name] || Wrench;
             return (
@@ -469,7 +631,7 @@ export default function HomePage() {
         <SectionHeader title="AOS Flash Sales" href="/shop?filter=flash" icon={Zap} />
         <AutoScrollRow speed={3000}>
           {flash.slice(0, 8).map((p) => (
-            <div key={p.id} className="w-[180px] md:w-[220px] flex-shrink-0"><ProductCard product={p} /></div>
+            <div key={p.id} className="w-[calc(50vw-22px)] md:w-[220px] flex-shrink-0 snap-start"><ProductCard product={p} /></div>
           ))}
         </AutoScrollRow>
       </section>
@@ -479,7 +641,7 @@ export default function HomePage() {
         <SectionHeader title="Services Near You" href="/shop?category=Services" icon={Wrench} />
         <AutoScrollRow speed={4000}>
           {services.map((svc) => (
-            <div key={svc.id} className="w-[180px] md:w-[220px] flex-shrink-0">
+            <div key={svc.id} className="w-[calc(50vw-22px)] md:w-[220px] flex-shrink-0 snap-start">
               <ProductCard product={svc} />
             </div>
           ))}
@@ -499,7 +661,7 @@ export default function HomePage() {
         <SectionHeader title="AOS Electronics Deals" href="/shop?category=Electronics" icon={Monitor} />
         <AutoScrollRow speed={3500}>
           {electronics.map((p) => (
-            <div key={p.id} className="w-[180px] md:w-[220px] flex-shrink-0"><ProductCard product={p} /></div>
+            <div key={p.id} className="w-[calc(50vw-22px)] md:w-[220px] flex-shrink-0 snap-start"><ProductCard product={p} /></div>
           ))}
         </AutoScrollRow>
       </section>
@@ -509,7 +671,7 @@ export default function HomePage() {
         <SectionHeader title="AOS Deals" href="/shop?filter=deals" icon={Flame} />
         <AutoScrollRow speed={3200}>
           {flash.map((p) => (
-            <div key={`deal-${p.id}`} className="w-[180px] md:w-[220px] flex-shrink-0"><ProductCard product={p} /></div>
+            <div key={`deal-${p.id}`} className="w-[calc(50vw-22px)] md:w-[220px] flex-shrink-0 snap-start"><ProductCard product={p} /></div>
           ))}
         </AutoScrollRow>
       </section>
@@ -535,7 +697,7 @@ export default function HomePage() {
         <SectionHeader title="Furniture" href="/shop?category=Furniture" icon={Sofa} />
         <AutoScrollRow speed={3800}>
           {furniture.map((p) => (
-            <div key={p.id} className="w-[180px] md:w-[220px] flex-shrink-0"><ProductCard product={p} /></div>
+            <div key={p.id} className="w-[calc(50vw-22px)] md:w-[220px] flex-shrink-0 snap-start"><ProductCard product={p} /></div>
           ))}
         </AutoScrollRow>
       </section>
@@ -550,7 +712,7 @@ export default function HomePage() {
         <SectionHeader title="Electronics" href="/shop?category=Electronics" icon={Monitor} />
         <AutoScrollRow speed={3600}>
           {electronics.map((p) => (
-            <div key={`elec-${p.id}`} className="w-[180px] md:w-[220px] flex-shrink-0"><ProductCard product={p} /></div>
+            <div key={`elec-${p.id}`} className="w-[calc(50vw-22px)] md:w-[220px] flex-shrink-0 snap-start"><ProductCard product={p} /></div>
           ))}
         </AutoScrollRow>
       </section>
@@ -560,7 +722,7 @@ export default function HomePage() {
         <SectionHeader title="Fashion" href="/shop?category=Fashion" icon={Shirt} />
         <AutoScrollRow speed={3400}>
           {fashion.map((p) => (
-            <div key={p.id} className="w-[180px] md:w-[220px] flex-shrink-0"><ProductCard product={p} /></div>
+            <div key={p.id} className="w-[calc(50vw-22px)] md:w-[220px] flex-shrink-0 snap-start"><ProductCard product={p} /></div>
           ))}
         </AutoScrollRow>
       </section>
@@ -570,7 +732,7 @@ export default function HomePage() {
         <SectionHeader title="Kids" href="/shop?category=Kids" icon={Baby} />
         <AutoScrollRow speed={3700}>
           {kids.map((p) => (
-            <div key={p.id} className="w-[180px] md:w-[220px] flex-shrink-0"><ProductCard product={p} /></div>
+            <div key={p.id} className="w-[calc(50vw-22px)] md:w-[220px] flex-shrink-0 snap-start"><ProductCard product={p} /></div>
           ))}
         </AutoScrollRow>
       </section>
@@ -580,7 +742,7 @@ export default function HomePage() {
         <SectionHeader title="Beauty" href="/shop?category=Beauty" icon={Sparkles} />
         <AutoScrollRow speed={3300}>
           {beauty.map((p) => (
-            <div key={p.id} className="w-[180px] md:w-[220px] flex-shrink-0"><ProductCard product={p} /></div>
+            <div key={p.id} className="w-[calc(50vw-22px)] md:w-[220px] flex-shrink-0 snap-start"><ProductCard product={p} /></div>
           ))}
         </AutoScrollRow>
       </section>

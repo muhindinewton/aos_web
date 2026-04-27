@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import ProtectedRoute from '../../components/protected-route';
 import {
   ChevronLeft,
   BadgeCheck,
@@ -107,7 +108,7 @@ function formatNumber(n: number) {
   return String(n);
 }
 
-export default function MyStorefrontPage() {
+function MyStorefrontPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'posts' | 'analytics'>('posts');
   const [posts, setPosts] = useState<Post[]>(initialPosts);
@@ -313,6 +314,10 @@ export default function MyStorefrontPage() {
       )}
     </>
   );
+}
+
+export default function MyStorefrontPageWrapper() {
+  return <ProtectedRoute><MyStorefrontPage /></ProtectedRoute>;
 }
 
 function QuickStat({ value, label }: { value: string; label: string }) {

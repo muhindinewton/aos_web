@@ -3,10 +3,11 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, Heart, Trash2 } from 'lucide-react';
+import ProtectedRoute from '../../components/protected-route';
 import { products } from '../../lib/data';
 import { ProductCard } from '../../components/product-card';
 
-export default function WishlistPage() {
+function WishlistPage() {
   const [wishlist, setWishlist] = useState(products.slice(0, 6).map(p => p.id));
 
   const wishlistProducts = products.filter(p => wishlist.includes(p.id));
@@ -52,4 +53,8 @@ export default function WishlistPage() {
       )}
     </div>
   );
+}
+
+export default function WishlistPageWrapper() {
+  return <ProtectedRoute><WishlistPage /></ProtectedRoute>;
 }
