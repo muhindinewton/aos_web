@@ -254,7 +254,7 @@ function Slider({ slides, interval = 4000, tall, fill }: { slides: SlideData[]; 
 
   return (
     <div className={fill ? 'relative h-full' : ''}>
-      <div className={`relative ${fill ? 'h-full rounded-none' : tall ? 'h-[200px] md:h-72 lg:h-80 rounded-3xl' : 'h-40 md:h-48 rounded-3xl'} overflow-hidden shadow-elevated group`} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+      <div className={`relative ${fill ? 'h-full rounded-none' : tall ? 'h-[175px] md:h-72 lg:h-80 rounded-3xl' : 'h-40 md:h-48 rounded-3xl'} overflow-hidden shadow-elevated group`} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
         {/* Sliding track */}
         <div
           className="flex h-full transition-transform duration-500 ease-in-out"

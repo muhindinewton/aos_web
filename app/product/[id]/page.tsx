@@ -123,7 +123,7 @@ export default function ProductDetailPage() {
 
   return (
     <>
-      <div className="mx-auto max-w-7xl px-4 py-5 pb-28 md:px-6 md:py-8 md:pb-8">
+      <div className="mx-auto max-w-7xl px-4 py-5 pb-36 md:px-6 md:py-8 md:pb-8">
         <Link
           href="/shop"
           className="mb-5 inline-flex items-center gap-2 rounded-full border border-theme bg-surface px-4 py-2 text-sm font-medium text-theme-secondary transition-colors hover:border-primary/30 hover:text-primary"
@@ -529,7 +529,7 @@ export default function ProductDetailPage() {
         ) : null}
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-theme bg-surface backdrop-blur md:hidden">
+      <div className="fixed bottom-16 left-0 right-0 z-40 border-t border-theme bg-surface backdrop-blur md:hidden">
         <div className="flex items-center gap-2 px-4 py-3">
           <button className="flex h-12 w-12 items-center justify-center rounded-2xl border border-theme bg-elevated text-theme-primary transition-colors hover:bg-primary/5">
             <ShoppingCart className="h-5 w-5" />

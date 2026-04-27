@@ -308,8 +308,8 @@ export function Navbar() {
         </div>
       </header>
 
-      {/* Mobile Top Bar */}
-      <header className="md:hidden sticky top-0 z-50">
+      {/* Mobile Top Bar — only on home & categories */}
+      <header className={`md:hidden sticky top-0 z-50 ${pathname === '/' || pathname === '/categories' ? '' : 'hidden'}`}>
         {/* Mini utility bar */}
         <div className="bg-gradient-to-r from-primary to-red-600 text-white px-4 py-1.5">
           <div className="flex justify-between items-center text-[10px]">
