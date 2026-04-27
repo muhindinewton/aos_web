@@ -157,9 +157,10 @@ export function Navbar() {
               <div className="flex-1 max-w-2xl">
                 <div className={`relative flex items-center transition-all duration-200 ${searchFocused ? 'scale-[1.02]' : ''}`}>
                   {/* Custom category dropdown */}
-                  <div ref={catRef} className="absolute left-0 h-full flex items-center z-50">
+                  <div ref={catRef} className="absolute left-0 h-full flex items-center" style={{zIndex:9999,position:'absolute'}}>
                     <button
-                      onClick={() => setCatOpen(o => !o)}
+                      type="button"
+                      onMouseDown={e => { e.preventDefault(); setCatOpen(o => !o); }}
                       className="h-full flex items-center gap-1.5 pl-3.5 pr-3 bg-elevated border-r border-theme rounded-l-xl text-xs font-medium text-theme-secondary hover:text-theme-primary transition-colors whitespace-nowrap"
                     >
                       {(() => { const Icon = CAT_ICONS[selectedCat] || LayoutGrid; return <Icon className="w-3.5 h-3.5 text-primary flex-shrink-0" />; })()}
@@ -168,7 +169,7 @@ export function Navbar() {
                     </button>
 
                     {catOpen && (
-                      <div className="absolute top-full left-0 mt-1 w-52 bg-surface border border-theme rounded-2xl shadow-2xl overflow-hidden">
+                      <div className="absolute top-full left-0 mt-1 w-52 bg-surface border border-theme rounded-2xl shadow-2xl overflow-hidden" style={{zIndex:9999}}>
                         <div className="p-1.5 max-h-72 overflow-y-auto hide-scrollbar">
                           {catItems.map(({ label }) => {
                             const Icon = CAT_ICONS[label] || LayoutGrid;
@@ -176,7 +177,8 @@ export function Navbar() {
                             return (
                               <button
                                 key={label}
-                                onClick={() => { setSelectedCat(label); setCatOpen(false); }}
+                                type="button"
+                                onMouseDown={e => { e.preventDefault(); setSelectedCat(label); setCatOpen(false); }}
                                 className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-medium transition-colors ${
                                   active
                                     ? 'bg-primary text-white'
@@ -233,19 +235,21 @@ export function Navbar() {
                   <MessageCircle className="w-5 h-5" />
                   <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center text-[10px] font-bold text-white">2</span>
                 </Link>
-                {mounted && isLoggedIn && user && (
-                  <Link
-                    href="/account"
-                    className="relative p-2.5 rounded-xl hover:bg-elevated text-theme-secondary hover:text-theme-primary transition-colors group"
-                    title="My Account"
-                  >
+                <Link
+                  href="/account"
+                  className="relative p-2.5 rounded-xl hover:bg-elevated text-theme-secondary hover:text-theme-primary transition-colors group"
+                  title="My Account"
+                >
+                  {mounted && isLoggedIn && user ? (
                     <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center">
                       <span className="text-white text-xs font-bold leading-none">
                         {(user.displayName || user.email || 'U')[0].toUpperCase()}
                       </span>
                     </div>
-                  </Link>
-                )}
+                  ) : (
+                    <UserCircle className="w-5 h-5" />
+                  )}
+                </Link>
                 <div className="w-px h-6 bg-theme mx-2" />
                 <Link
                   href="/sell"

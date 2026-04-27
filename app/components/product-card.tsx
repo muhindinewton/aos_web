@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Heart, Star, MapPin, Clock, Eye } from 'lucide-react';
 import { Product } from '../types';
 import { useToast } from '../providers/toast-provider';
+import { usePreferences } from '../providers/preferences-provider';
 
 interface ProductCardProps {
   product: Product;
@@ -13,6 +14,7 @@ interface ProductCardProps {
 export function ProductCard({ product }: ProductCardProps) {
   const [liked, setLiked] = useState(false);
   const { showToast } = useToast();
+  const { formatPrice } = usePreferences();
 
   const handleLike = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -70,9 +72,9 @@ export function ProductCard({ product }: ProductCardProps) {
 
         {/* Price — fixed 2-line height to keep original price space consistent */}
         <div className="mt-1 h-9 flex flex-col justify-center">
-          <span className="font-bold text-primary text-sm leading-none">{product.price}</span>
+          <span className="font-bold text-primary text-sm leading-none">{formatPrice(product.price)}</span>
           <span className="text-[11px] text-theme-muted line-through leading-none mt-0.5 h-3.5">
-            {product.originalPrice ?? ''}
+            {product.originalPrice ? formatPrice(product.originalPrice) : ''}
           </span>
         </div>
 

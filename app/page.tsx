@@ -12,12 +12,22 @@ const categoryIcons: Record<string, React.ElementType> = {
 };
 
 const feedItems = [
-  { id: '1', type: 'live', creator: 'TechDeals_KE', avatar: 'T', viewers: 1247, title: 'Flash Sale Electronics!' },
-  { id: '2', type: 'short', creator: 'SneakerHead', avatar: 'S', views: 23500, title: 'New Jordan 1s 🔥' },
-  { id: '3', type: 'short', creator: 'FashionHub', avatar: 'F', views: 15200, title: 'Summer collection' },
-  { id: '4', type: 'live', creator: 'BeautyQueen', avatar: 'B', viewers: 892, title: 'Skincare routine' },
-  { id: '5', type: 'short', creator: 'HomeDecor', avatar: 'H', views: 5600, title: 'Room makeover' },
-  { id: '6', type: 'short', creator: 'GadgetGuru', avatar: 'G', views: 8900, title: 'iPhone 15 review' },
+  { id: '1',  type: 'live',  creator: 'TechDeals_KE',   avatar: 'T', viewers: 1247,  title: 'Flash Sale Electronics!' },
+  { id: '2',  type: 'short', creator: 'SneakerHead',     avatar: 'S', views: 23500,   title: 'New Jordan 1s 🔥' },
+  { id: '3',  type: 'short', creator: 'FashionHub',      avatar: 'F', views: 15200,   title: 'Summer collection' },
+  { id: '4',  type: 'live',  creator: 'BeautyQueen',     avatar: 'B', viewers: 892,   title: 'Skincare routine live' },
+  { id: '5',  type: 'short', creator: 'HomeDecor254',    avatar: 'H', views: 5600,    title: 'Room makeover on a budget' },
+  { id: '6',  type: 'short', creator: 'GadgetGuru',      avatar: 'G', views: 8900,    title: 'iPhone 15 Pro review' },
+  { id: '7',  type: 'live',  creator: 'NairobiFashion',  avatar: 'N', viewers: 3410,  title: 'New arrivals try-on haul' },
+  { id: '8',  type: 'short', creator: 'KitchenVibes',    avatar: 'K', views: 41200,   title: 'Best blender for 2025 🍳' },
+  { id: '9',  type: 'live',  creator: 'CarMart_KE',      avatar: 'C', viewers: 678,   title: 'Toyota Prado walkthrough' },
+  { id: '10', type: 'short', creator: 'FitnessPro',      avatar: 'P', views: 19800,   title: 'Home gym setup under 5k' },
+  { id: '11', type: 'short', creator: 'StyleByAmos',     avatar: 'A', views: 32100,   title: 'Outfit of the week 💃' },
+  { id: '12', type: 'live',  creator: 'ElectroBazaar',   avatar: 'E', viewers: 2150,  title: 'Samsung Galaxy S25 unboxing' },
+  { id: '13', type: 'short', creator: 'PetCorner_KE',    avatar: 'P', views: 7400,    title: 'Cute puppy products 🐶' },
+  { id: '14', type: 'live',  creator: 'MommaShop',       avatar: 'M', viewers: 540,   title: 'Baby essentials flash sale' },
+  { id: '15', type: 'short', creator: 'DecorByLucy',     avatar: 'D', views: 12300,   title: 'Affordable living room glow-up' },
+  { id: '16', type: 'short', creator: 'TravelKenya',     avatar: 'T', views: 28700,   title: 'Safari packages you NEED to see' },
 ];
 
 function FeedSection() {
@@ -244,7 +254,7 @@ function Slider({ slides, interval = 4000, tall, fill }: { slides: SlideData[]; 
 
   return (
     <div className={fill ? 'relative h-full' : ''}>
-      <div className={`relative ${fill ? 'h-full rounded-none' : tall ? 'h-[116px] md:h-72 lg:h-80 rounded-3xl' : 'h-40 md:h-48 rounded-3xl'} overflow-hidden shadow-elevated group`} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+      <div className={`relative ${fill ? 'h-full rounded-none' : tall ? 'h-[200px] md:h-72 lg:h-80 rounded-3xl' : 'h-40 md:h-48 rounded-3xl'} overflow-hidden shadow-elevated group`} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
         {/* Sliding track */}
         <div
           className="flex h-full transition-transform duration-500 ease-in-out"
@@ -533,16 +543,10 @@ export default function HomePage() {
           {/* Subcategory Flyout — overlays the banner */}
           {hoveredCat !== null && (
             <div className="absolute left-52 top-0 h-full z-20 w-[500px] bg-surface border-y border-r border-theme shadow-2xl flex flex-col">
-              <div className="px-4 py-2.5 border-b border-theme flex-shrink-0 flex items-center justify-between">
+              <div className="px-4 py-2.5 border-b border-theme flex-shrink-0">
                 <p className="text-[11px] font-bold text-primary uppercase tracking-wider">
                   {SIDEBAR_CATS[hoveredCat].name}
                 </p>
-                <Link
-                  href="/categories"
-                  className="text-[10px] text-primary font-semibold flex items-center gap-0.5 hover:underline"
-                >
-                  See all <ChevronRight className="w-3 h-3" />
-                </Link>
               </div>
               <div className="flex-1 overflow-y-auto p-3">
                 <div className="grid grid-cols-5 gap-x-2 gap-y-3">
@@ -585,35 +589,19 @@ export default function HomePage() {
 
       </section>
 
-      {/* ===== QUICK ACTIONS ===== */}
-      <section className="mb-6">
-        <div className="grid grid-cols-4 md:grid-cols-4 gap-2 md:gap-3">
-          {[
-            { icon: Zap, title: 'Flash Sale', gradient: 'from-red-500 to-orange-500' },
-            { icon: Flame, title: 'Trending', gradient: 'from-blue-500 to-cyan-500' },
-            { icon: Gift, title: 'Free Ship', gradient: 'from-green-500 to-emerald-500' },
-            { icon: Award, title: 'Top Deals', gradient: 'from-purple-500 to-pink-500' },
-          ].map((item) => (
-            <Link key={item.title} href="/shop" className={`bg-gradient-to-br ${item.gradient} rounded-xl p-2.5 md:p-4 text-white hover:opacity-90 transition-opacity text-center`}>
-              <item.icon className="w-5 h-5 md:w-7 md:h-7 mx-auto mb-1 opacity-90" />
-              <p className="font-semibold text-xs md:text-sm">{item.title}</p>
-            </Link>
-          ))}
-        </div>
-      </section>
 
       {/* ===== CATEGORIES (mobile only — desktop uses sidebar) ===== */}
       <section className="mb-6 md:hidden">
         <SectionHeader title="Categories" href="/categories" icon={Grid3X3} />
-        <div className="grid grid-cols-5 gap-3">
+        <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-2 -mx-4 px-4">
           {categories.slice(1).map((cat) => {
             const Icon = categoryIcons[cat.name] || Wrench;
             return (
-              <Link key={cat.id} href={`/shop?category=${cat.name}`} className="flex flex-col items-center gap-2 group">
-                <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-elevated border border-theme flex items-center justify-center group-hover:border-primary group-hover:bg-primary/5 transition-colors">
-                  <Icon className="w-5 h-5 md:w-6 md:h-6 text-theme-secondary group-hover:text-primary transition-colors" />
+              <Link key={cat.id} href={`/shop?category=${cat.name}`} className="flex flex-col items-center gap-2 group flex-shrink-0">
+                <div className="w-14 h-14 rounded-full bg-elevated border border-theme flex items-center justify-center group-hover:border-primary group-hover:bg-primary/5 transition-colors">
+                  <Icon className="w-6 h-6 text-theme-secondary group-hover:text-primary transition-colors" />
                 </div>
-                <span className="text-[10px] md:text-xs font-medium text-theme-secondary text-center">{cat.name}</span>
+                <span className="text-[10px] font-medium text-theme-secondary text-center whitespace-nowrap">{cat.name}</span>
               </Link>
             );
           })}

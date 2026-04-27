@@ -551,11 +551,11 @@ function MasonryGrid({ items, onItemTap }: { items: FeedItem[]; onItemTap: (item
   const left  = items.filter((_, i) => i % 2 === 0);
   const right = items.filter((_, i) => i % 2 !== 0);
   return (
-    <div className="flex gap-3 px-4 pb-6">
-      <div className="flex-1 flex flex-col">
+    <div className="flex gap-3 px-4 pb-28 overflow-hidden">
+      <div className="flex-1 min-w-0 flex flex-col">
         {left.map(item => <FeedCard key={item.id} item={item} onTap={() => onItemTap(item)} />)}
       </div>
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 min-w-0 flex flex-col">
         {right.map(item => <FeedCard key={item.id} item={item} onTap={() => onItemTap(item)} />)}
       </div>
     </div>
@@ -703,7 +703,7 @@ export default function FeedPage() {
 
         {/* Following */}
         {tab === 'following' && (
-          <div className="px-4 py-4 space-y-6">
+          <div className="px-4 py-4 pb-28 space-y-6">
             {/* Suggested creators */}
             <div className="bg-surface rounded-2xl border border-theme p-4">
               <p className="text-sm font-medium text-theme-muted mb-4">Suggested for You</p>

@@ -4,6 +4,7 @@ import { AuthProvider } from './providers/auth-provider';
 import { ThemeProvider } from './providers/theme-provider';
 import { ToastProvider } from './providers/toast-provider';
 import { LocationProvider } from './providers/location-provider';
+import { PreferencesProvider } from './providers/preferences-provider';
 import { Navbar } from './components/bottom-nav';
 import { Footer } from './components/footer';
 import { AppWrapper } from './components/app-wrapper';
@@ -28,6 +29,7 @@ export default function RootLayout({
       <body className="bg-theme text-theme-primary">
         <ThemeProvider>
           <LocationProvider>
+          <PreferencesProvider>
           <AuthProvider>
             <ToastProvider>
               <AppWrapper>
@@ -37,6 +39,7 @@ export default function RootLayout({
               </AppWrapper>
             </ToastProvider>
           </AuthProvider>
+          </PreferencesProvider>
           </LocationProvider>
         </ThemeProvider>
       </body>

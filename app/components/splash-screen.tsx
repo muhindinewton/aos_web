@@ -90,26 +90,27 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
     run();
   }, [onComplete]);
 
-  // Compute scatter pixel offsets from screen height
-  const iconPos  = ICONS.map(el => ({
-    x: Math.cos(el.angle) * el.dist * screenH,
-    y: Math.sin(el.angle) * el.dist * screenH,
-  }));
-  const dotPos   = DOTS.map(el => ({
-    x: Math.cos(el.angle) * el.dist * screenH,
-    y: Math.sin(el.angle) * el.dist * screenH,
-  }));
-  const dashPos  = DASHES.map(el => ({
-    x: Math.cos(el.angle) * el.dist * screenH,
-    y: Math.sin(el.angle) * el.dist * screenH,
-  }));
-
   const isOut = phase === 'scatter-out';
   const isIn  = phase === 'scatter-in';
 
-  // Ring sizing (mirrors _RingPainter logic)
-  const maxR   = Math.min(screenH * 0.46, 340); // matches width * 0.43 on mobile
+  // Ring sizing — capped so animation stays compact on all screen sizes
+  const ref    = Math.min(screenH, 420);
+  const maxR   = Math.min(ref * 0.40, 220);
   const outerD = maxR * 2;
+
+  // Compute scatter pixel offsets
+  const iconPos  = ICONS.map(el => ({
+    x: Math.cos(el.angle) * el.dist * ref,
+    y: Math.sin(el.angle) * el.dist * ref,
+  }));
+  const dotPos   = DOTS.map(el => ({
+    x: Math.cos(el.angle) * el.dist * ref,
+    y: Math.sin(el.angle) * el.dist * ref,
+  }));
+  const dashPos  = DASHES.map(el => ({
+    x: Math.cos(el.angle) * el.dist * ref,
+    y: Math.sin(el.angle) * el.dist * ref,
+  }));
 
   const ringStyles = (() => {
     if (ringPhase === 'none') return { outer: { width: 0, height: 0, opacity: 0, borderRadius: '50%', background: 'var(--primary)' }, inner: { width: 0, height: 0, opacity: 0 } };
@@ -267,8 +268,8 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
               transition: 'transform 750ms cubic-bezier(0.34,1.56,0.64,1), opacity 600ms ease-out',
             }}
           >
-            <div className="w-[110px] h-[110px] rounded-3xl bg-black shadow-2xl flex items-center justify-center">
-              <span className="text-primary font-black text-4xl tracking-tight">AOS</span>
+            <div className="w-[80px] h-[80px] rounded-2xl bg-black shadow-2xl flex items-center justify-center">
+              <span className="text-primary font-black text-2xl tracking-tight">AOS</span>
             </div>
           </div>
 
@@ -282,8 +283,8 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
               textAlign: 'center',
             }}
           >
-            <h1 className="text-5xl font-black text-gray-900 tracking-[0.35em]">AOS</h1>
-            <p className="text-xs font-semibold text-gray-400 tracking-[0.3em] mt-2">
+            <h1 className="text-3xl font-black text-gray-900 tracking-[0.35em]">AOS</h1>
+            <p className="text-[10px] font-semibold text-gray-400 tracking-[0.3em] mt-1.5">
               AFRICA ONLINE STORES
             </p>
           </div>

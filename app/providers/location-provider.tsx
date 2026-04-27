@@ -211,45 +211,96 @@ export function flagEmoji(code: string): string {
     .join('');
 }
 
+export const COUNTRY_CITIES: Record<string, string[]> = {
+  KE: ['Nairobi','Mombasa','Kisumu','Nakuru','Eldoret','Thika','Malindi','Kitale','Garissa','Nyeri','Machakos','Meru','Kericho','Embu','Kakamega'],
+  NG: ['Lagos','Abuja','Kano','Ibadan','Port Harcourt','Benin City','Kaduna','Enugu','Onitsha','Warri','Maiduguri','Jos','Aba','Ilorin','Calabar'],
+  GH: ['Accra','Kumasi','Tamale','Sekondi-Takoradi','Cape Coast','Ho','Sunyani','Koforidua','Wa','Bolgatanga','Obuasi','Teshie','Tema','Kasoa'],
+  ZA: ['Johannesburg','Cape Town','Durban','Pretoria','Port Elizabeth','Bloemfontein','East London','Polokwane','Nelspruit','Kimberley','Rustenburg','Pietermaritzburg','George','Vereeniging'],
+  TZ: ['Dar es Salaam','Dodoma','Mwanza','Arusha','Mbeya','Morogoro','Tanga','Zanzibar City','Kigoma','Tabora','Iringa','Moshi','Shinyanga'],
+  UG: ['Kampala','Gulu','Lira','Mbarara','Jinja','Mbale','Entebbe','Masaka','Fort Portal','Soroti','Arua','Kabale','Tororo'],
+  ET: ['Addis Ababa','Dire Dawa','Mekelle','Gondar','Hawassa','Bahir Dar','Adama','Jimma','Jijiga','Shashamane','Bishoftu'],
+  EG: ['Cairo','Alexandria','Giza','Shubra El Kheima','Port Said','Suez','Luxor','Mansoura','El Mahalla','Tanta','Asyut','Zagazig','Ismailia','Faiyum'],
+  MA: ['Casablanca','Rabat','Fes','Marrakech','Tangier','Agadir','Oujda','Kenitra','Tetouan','Safi','Meknes','El Jadida'],
+  RW: ['Kigali','Butare','Gitarama','Musanze','Byumba','Cyangugu','Gisenyi','Rwamagana','Nyamata'],
+  SN: ['Dakar','Thiès','Kaolack','Saint-Louis','Ziguinchor','Diourbel','Tambacounda','Louga','Kolda'],
+  CI: ['Abidjan','Bouaké','Daloa','San-Pédro','Yamoussoukro','Korhogo','Man','Divo','Gagnoa'],
+  CM: ['Douala','Yaoundé','Garoua','Kousséri','Bamenda','Bafoussam','Ngaoundéré','Bertoua','Loum'],
+  AO: ['Luanda','Huambo','Lobito','Benguela','Namibe','Cabinda','Malanje','Lubango'],
+  ZM: ['Lusaka','Kitwe','Ndola','Kabwe','Chingola','Mufulira','Livingstone','Luanshya'],
+  MZ: ['Maputo','Matola','Beira','Nampula','Chimoio','Nacala','Quelimane','Tete'],
+  TG: ['Lomé','Sokodé','Kara','Palimé','Atakpamé','Bassar','Tsévié'],
+  BJ: ['Cotonou','Porto-Novo','Parakou','Djougou','Bohicon','Abomey','Natitingou'],
+  BF: ['Ouagadougou','Bobo-Dioulasso','Koudougou','Ouahigouya','Banfora','Kaya'],
+  ML: ['Bamako','Sikasso','Mopti','Koutiala','Kayes','Ségou','Gao','Timbuktu'],
+  US: ['New York','Los Angeles','Chicago','Houston','Phoenix','Philadelphia','San Antonio','San Diego','Dallas','San Jose','Austin','Jacksonville','Fort Worth','Columbus','Charlotte'],
+  GB: ['London','Birmingham','Leeds','Glasgow','Sheffield','Bradford','Liverpool','Edinburgh','Manchester','Bristol','Wakefield','Cardiff','Leicester','Coventry'],
+  IN: ['Mumbai','Delhi','Bangalore','Hyderabad','Ahmedabad','Chennai','Kolkata','Pune','Jaipur','Surat','Lucknow','Kanpur','Nagpur','Indore','Thane'],
+  CN: ['Shanghai','Beijing','Guangzhou','Shenzhen','Chengdu','Chongqing','Wuhan','Xi\'an','Hangzhou','Tianjin','Nanjing','Dongguan'],
+  AE: ['Dubai','Abu Dhabi','Sharjah','Al Ain','Ajman','Ras Al Khaimah','Fujairah','Umm Al Quwain'],
+  SA: ['Riyadh','Jeddah','Mecca','Medina','Dammam','Khobar','Tabuk','Buraidah','Khamis Mushait'],
+  DE: ['Berlin','Hamburg','Munich','Cologne','Frankfurt','Stuttgart','Düsseldorf','Leipzig','Dortmund','Essen'],
+  FR: ['Paris','Marseille','Lyon','Toulouse','Nice','Nantes','Strasbourg','Montpellier','Bordeaux','Lille'],
+  CA: ['Toronto','Montreal','Vancouver','Calgary','Edmonton','Ottawa','Winnipeg','Quebec City','Hamilton'],
+  AU: ['Sydney','Melbourne','Brisbane','Perth','Adelaide','Gold Coast','Canberra','Newcastle','Hobart'],
+  BR: ['São Paulo','Rio de Janeiro','Brasília','Salvador','Fortaleza','Belo Horizonte','Manaus','Curitiba','Recife'],
+  JP: ['Tokyo','Osaka','Yokohama','Nagoya','Sapporo','Kobe','Kyoto','Fukuoka','Kawasaki','Saitama'],
+};
+
 interface LocationContextValue {
   country: Country;
   setCountry: (country: Country) => void;
+  city: string;
+  setCity: (city: string) => void;
+  cities: string[];
 }
 
 const LocationContext = createContext<LocationContextValue>({
   country: { code: 'KE', name: 'Kenya' },
   setCountry: () => {},
+  city: '',
+  setCity: () => {},
+  cities: COUNTRY_CITIES['KE'] || [],
 });
 
 export function LocationProvider({ children }: { children: React.ReactNode }) {
   const [country, setCountryState] = useState<Country>({ code: 'KE', name: 'Kenya' });
+  const [city, setCityState] = useState('');
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem('aos_country');
     if (stored) {
-      try {
-        setCountryState(JSON.parse(stored));
-      } catch {}
+      try { setCountryState(JSON.parse(stored)); } catch {}
     }
+    const storedCity = localStorage.getItem('aos_city');
+    if (storedCity) setCityState(storedCity);
     setMounted(true);
   }, []);
 
   const setCountry = (c: Country) => {
     setCountryState(c);
     localStorage.setItem('aos_country', JSON.stringify(c));
+    setCityState('');
+    localStorage.removeItem('aos_city');
   };
+
+  const setCity = (c: string) => {
+    setCityState(c);
+    localStorage.setItem('aos_city', c);
+  };
+
+  const cities = COUNTRY_CITIES[country.code] || [];
 
   if (!mounted) {
     return (
-      <LocationContext.Provider value={{ country, setCountry }}>
+      <LocationContext.Provider value={{ country, setCountry, city, setCity, cities }}>
         {children}
       </LocationContext.Provider>
     );
   }
 
   return (
-    <LocationContext.Provider value={{ country, setCountry }}>
+    <LocationContext.Provider value={{ country, setCountry, city, setCity, cities }}>
       {children}
     </LocationContext.Provider>
   );
