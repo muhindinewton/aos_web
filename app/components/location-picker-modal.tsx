@@ -12,7 +12,8 @@ type Step = 'country' | 'city';
 
 export function LocationPickerModal({ onClose }: LocationPickerModalProps) {
   const { country: selected, setCountry, city: selectedCity, setCity } = useLocation();
-  const [step, setStep] = useState<Step>('country');
+  const hasCities = !!(COUNTRY_CITIES[selected.code]?.length);
+  const [step, setStep] = useState<Step>(hasCities ? 'city' : 'country');
   const [pendingCountry, setPendingCountry] = useState(selected);
   const [query, setQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -51,7 +52,7 @@ export function LocationPickerModal({ onClose }: LocationPickerModalProps) {
 
   const handleAutoDetect = () => handleCountrySelect('KE', 'Kenya');
 
-  const title = step === 'country' ? 'Select Country' : `Cities in ${pendingCountry.name}`;
+  const title = step === 'country' ? 'Select Country' : `Cities in ${flagEmoji(pendingCountry.code)} ${pendingCountry.name}`;
 
   return (
     <div
