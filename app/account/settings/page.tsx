@@ -26,6 +26,7 @@ import { useTheme } from '../../providers/theme-provider';
 import { useAuth } from '../../providers/auth-provider';
 import { useLocation } from '../../providers/location-provider';
 import { LocationPickerModal } from '../../components/location-picker-modal';
+import { usePreferences, LANGUAGES, CURRENCIES } from '../../providers/preferences-provider';
 
 interface SettingItemProps {
   icon: React.ElementType;
@@ -63,20 +64,10 @@ function SettingsPage() {
   const { isDarkMode, toggleTheme } = useTheme();
   const { logout, user } = useAuth();
   const { country } = useLocation();
+  const { language, setLanguage, currency, setCurrencyCode, t } = usePreferences();
   const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [showCurrencyModal, setShowCurrencyModal] = useState(false);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState('English');
-  const [selectedCurrency, setSelectedCurrency] = useState('KES');
-
-  const languages = ['English', 'Swahili', 'French', 'Arabic', 'Portuguese'];
-  const currencies = [
-    { code: 'KES', name: 'Kenyan Shilling', symbol: 'KSh' },
-    { code: 'USD', name: 'US Dollar', symbol: '$' },
-    { code: 'NGN', name: 'Nigerian Naira', symbol: '₦' },
-    { code: 'ZAR', name: 'South African Rand', symbol: 'R' },
-    { code: 'GHS', name: 'Ghanaian Cedi', symbol: 'GH₵' },
-  ];
 
   return (
     <div className="min-h-screen bg-theme pb-20 md:pb-0">
@@ -86,28 +77,28 @@ function SettingsPage() {
           <Link href="/account" className="p-2 rounded-xl border border-theme hover:bg-elevated transition-colors">
             <ArrowLeft className="w-5 h-5 text-theme-primary" />
           </Link>
-          <h1 className="text-xl font-bold text-theme-primary">Settings</h1>
+          <h1 className="text-xl font-bold text-theme-primary">{t('settings')}</h1>
         </div>
 
         {/* Account Section */}
         <div className="mb-6">
-          <h2 className="text-sm font-semibold text-theme-muted uppercase tracking-wider mb-3 px-1">Account</h2>
+          <h2 className="text-sm font-semibold text-theme-muted uppercase tracking-wider mb-3 px-1">{t('nav_account')}</h2>
           <div className="bg-surface border border-theme rounded-2xl overflow-hidden">
             <SettingItem 
               icon={User} 
-              title="Edit Profile" 
+              title={t('edit_profile')} 
               subtitle="Update your personal information"
               href="/account/profile"
             />
             <SettingItem 
               icon={Lock} 
-              title="Change Password" 
+              title={t('change_password')} 
               subtitle="Update your password"
               href="/account/password"
             />
             <SettingItem 
               icon={Shield} 
-              title="Security" 
+              title={t('security')} 
               subtitle="Two-factor authentication, login history"
               href="/account/security"
             />
@@ -116,23 +107,23 @@ function SettingsPage() {
 
         {/* Preferences Section */}
         <div className="mb-6">
-          <h2 className="text-sm font-semibold text-theme-muted uppercase tracking-wider mb-3 px-1">Preferences</h2>
+          <h2 className="text-sm font-semibold text-theme-muted uppercase tracking-wider mb-3 px-1">{t('preferences')}</h2>
           <div className="bg-surface border border-theme rounded-2xl overflow-hidden">
             <SettingItem 
               icon={Globe} 
-              title="Language" 
-              value={selectedLanguage}
+              title={t('pref_language')} 
+              value={language}
               onClick={() => setShowLanguageModal(true)}
             />
             <SettingItem 
               icon={DollarSign} 
-              title="Currency" 
-              value={selectedCurrency}
+              title={t('pref_currency')} 
+              value={`${currency.symbol} ${currency.code}`}
               onClick={() => setShowCurrencyModal(true)}
             />
             <SettingItem 
               icon={MapPin} 
-              title="Location" 
+              title={t('pref_country')} 
               value={country.name}
               onClick={() => setShowLocationPicker(true)}
             />
@@ -141,8 +132,8 @@ function SettingsPage() {
                 {isDarkMode ? <Moon className="w-5 h-5 text-primary" /> : <Sun className="w-5 h-5 text-primary" />}
               </div>
               <div className="flex-1">
-                <p className="font-medium text-theme-primary">Dark Mode</p>
-                <p className="text-sm text-theme-muted">{isDarkMode ? 'On' : 'Off'}</p>
+                <p className="font-medium text-theme-primary">{t('dark_mode')}</p>
+                <p className="text-sm text-theme-muted">{isDarkMode ? t('dark_mode_on') : t('dark_mode_off')}</p>
               </div>
               <div className={`w-12 h-7 rounded-full transition-colors ${isDarkMode ? 'bg-primary' : 'bg-gray-300'} relative`}>
                 <div className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow transition-transform ${isDarkMode ? 'translate-x-6' : 'translate-x-1'}`} />
@@ -157,7 +148,7 @@ function SettingsPage() {
           <div className="bg-surface border border-theme rounded-2xl overflow-hidden">
             <SettingItem 
               icon={Bell} 
-              title="Push Notifications" 
+              title={t('notifications')} 
               subtitle="Manage notification preferences"
               href="/account/notifications"
             />
@@ -176,7 +167,7 @@ function SettingsPage() {
           <div className="bg-surface border border-theme rounded-2xl overflow-hidden">
             <SettingItem 
               icon={Eye} 
-              title="Privacy Settings" 
+              title={t('privacy')} 
               subtitle="Control who can see your activity"
               href="/account/privacy"
             />
@@ -189,19 +180,19 @@ function SettingsPage() {
           <div className="bg-surface border border-theme rounded-2xl overflow-hidden">
             <SettingItem 
               icon={HelpCircle} 
-              title="Help Center" 
+              title={t('help_center')} 
               subtitle="FAQs and support articles"
               href="/help"
             />
             <SettingItem 
               icon={FileText} 
-              title="Terms of Service" 
+              title={t('terms')} 
               subtitle="Read our terms and conditions"
               href="/legal/terms"
             />
             <SettingItem 
               icon={Shield} 
-              title="Privacy Policy" 
+              title={t('privacy_policy')} 
               subtitle="Learn how we protect your data"
               href="/legal/privacy"
             />
@@ -213,7 +204,7 @@ function SettingsPage() {
           <div className="bg-surface border border-theme rounded-2xl overflow-hidden">
             <SettingItem 
               icon={LogOut} 
-              title="Log Out" 
+              title={t('logout')} 
               subtitle="Sign out of your account"
               onClick={logout}
               danger
@@ -231,21 +222,18 @@ function SettingsPage() {
       {showLanguageModal && (
         <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/50" onClick={() => setShowLanguageModal(false)}>
           <div className="bg-surface w-full max-w-md rounded-t-3xl md:rounded-3xl p-6" onClick={e => e.stopPropagation()}>
-            <h2 className="text-xl font-bold text-theme-primary mb-4">Select Language</h2>
+            <h2 className="text-xl font-bold text-theme-primary mb-4">{t('select_language')}</h2>
             <div className="space-y-2">
-              {languages.map(lang => (
+              {LANGUAGES.map(lang => (
                 <button
-                  key={lang}
-                  onClick={() => {
-                    setSelectedLanguage(lang);
-                    setShowLanguageModal(false);
-                  }}
+                  key={lang.code}
+                  onClick={() => { setLanguage(lang.name); setShowLanguageModal(false); }}
                   className={`w-full flex items-center justify-between p-4 rounded-xl transition-colors ${
-                    selectedLanguage === lang ? 'bg-primary/10 border border-primary' : 'hover:bg-elevated border border-transparent'
+                    language === lang.name ? 'bg-primary/10 border border-primary' : 'hover:bg-elevated border border-transparent'
                   }`}
                 >
-                  <span className={selectedLanguage === lang ? 'text-primary font-medium' : 'text-theme-primary'}>{lang}</span>
-                  {selectedLanguage === lang && <Check className="w-5 h-5 text-primary" />}
+                  <span className={language === lang.name ? 'text-primary font-medium' : 'text-theme-primary'}>{lang.name}</span>
+                  {language === lang.name && <Check className="w-5 h-5 text-primary" />}
                 </button>
               ))}
             </div>
@@ -257,24 +245,21 @@ function SettingsPage() {
       {showCurrencyModal && (
         <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/50" onClick={() => setShowCurrencyModal(false)}>
           <div className="bg-surface w-full max-w-md rounded-t-3xl md:rounded-3xl p-6" onClick={e => e.stopPropagation()}>
-            <h2 className="text-xl font-bold text-theme-primary mb-4">Select Currency</h2>
+            <h2 className="text-xl font-bold text-theme-primary mb-4">{t('select_currency')}</h2>
             <div className="space-y-2">
-              {currencies.map(curr => (
+              {CURRENCIES.map(curr => (
                 <button
                   key={curr.code}
-                  onClick={() => {
-                    setSelectedCurrency(curr.code);
-                    setShowCurrencyModal(false);
-                  }}
+                  onClick={() => { setCurrencyCode(curr.code); setShowCurrencyModal(false); }}
                   className={`w-full flex items-center justify-between p-4 rounded-xl transition-colors ${
-                    selectedCurrency === curr.code ? 'bg-primary/10 border border-primary' : 'hover:bg-elevated border border-transparent'
+                    currency.code === curr.code ? 'bg-primary/10 border border-primary' : 'hover:bg-elevated border border-transparent'
                   }`}
                 >
                   <div>
-                    <span className={selectedCurrency === curr.code ? 'text-primary font-medium' : 'text-theme-primary'}>{curr.name}</span>
+                    <span className={currency.code === curr.code ? 'text-primary font-medium' : 'text-theme-primary'}>{curr.name}</span>
                     <span className="text-theme-muted ml-2">({curr.symbol})</span>
                   </div>
-                  {selectedCurrency === curr.code && <Check className="w-5 h-5 text-primary" />}
+                  {currency.code === curr.code && <Check className="w-5 h-5 text-primary" />}
                 </button>
               ))}
             </div>

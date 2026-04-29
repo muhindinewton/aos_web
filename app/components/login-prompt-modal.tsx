@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Lock } from 'lucide-react';
+import { usePreferences } from '../providers/preferences-provider';
 
 interface LoginPromptModalProps {
   featureName?: string;
@@ -10,6 +11,7 @@ interface LoginPromptModalProps {
 }
 
 export default function LoginPromptModal({ featureName, onClose }: LoginPromptModalProps) {
+  const { t } = usePreferences();
   const feature = featureName ?? 'this feature';
 
   return (
@@ -26,12 +28,12 @@ export default function LoginPromptModal({ featureName, onClose }: LoginPromptMo
 
         {/* Title */}
         <h2 className="text-[22px] font-bold text-theme-primary text-center mb-3">
-          Login Required
+          {t('login_required')}
         </h2>
 
         {/* Description */}
         <p className="text-sm text-theme-muted text-center leading-relaxed mb-7">
-          Please login or create an account to access {feature}.
+          {t('login_desc')} {feature}.
         </p>
 
         {/* Buttons */}
@@ -41,14 +43,14 @@ export default function LoginPromptModal({ featureName, onClose }: LoginPromptMo
             onClick={onClose}
             className="flex-1 py-3.5 rounded-full border border-theme text-theme-primary font-semibold text-center text-sm hover:bg-elevated transition-colors"
           >
-            Login
+            {t('btn_login')}
           </Link>
           <Link
             href="/auth/signup"
             onClick={onClose}
             className="flex-1 py-3.5 rounded-full bg-primary text-white font-semibold text-center text-sm hover:bg-primary-hover transition-colors"
           >
-            Sign Up
+            {t('btn_signup')}
           </Link>
         </div>
 
@@ -57,7 +59,7 @@ export default function LoginPromptModal({ featureName, onClose }: LoginPromptMo
           onClick={onClose}
           className="w-full py-2.5 text-sm text-theme-muted font-medium hover:text-theme-primary transition-colors"
         >
-          Maybe Later
+          {t('btn_maybe_later')}
         </button>
       </div>
     </div>

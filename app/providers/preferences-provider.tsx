@@ -1,6 +1,7 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { getTranslator } from '../lib/i18n';
 
 export interface CurrencyInfo {
   code: string;
@@ -71,6 +72,7 @@ export function parseKES(priceStr: string): number {
 interface PreferencesContextValue {
   language: string;
   setLanguage: (lang: string) => void;
+  t: (key: string) => string;
   currency: CurrencyInfo;
   setCurrencyCode: (code: string) => void;
   formatPrice: (kesStr: string) => string;
@@ -81,6 +83,7 @@ const DEFAULT_CURRENCY = CURRENCIES[0];
 const PreferencesContext = createContext<PreferencesContextValue>({
   language: 'English',
   setLanguage: () => {},
+  t: (key) => key,
   currency: DEFAULT_CURRENCY,
   setCurrencyCode: () => {},
   formatPrice: (s) => s,
@@ -116,6 +119,8 @@ export function PreferencesProvider({ children }: { children: React.ReactNode })
     localStorage.setItem('aos_language', lang);
   };
 
+  const t = useCallback((key: string) => getTranslator(language)(key), [language]);
+
   const setCurrencyCode = (code: string) => {
     const found = CURRENCIES.find(c => c.code === code);
     if (found) {
@@ -134,7 +139,7 @@ export function PreferencesProvider({ children }: { children: React.ReactNode })
   };
 
   return (
-    <PreferencesContext.Provider value={{ language, setLanguage, currency, setCurrencyCode, formatPrice }}>
+    <PreferencesContext.Provider value={{ language, setLanguage, t, currency, setCurrencyCode, formatPrice }}>
       {children}
     </PreferencesContext.Provider>
   );

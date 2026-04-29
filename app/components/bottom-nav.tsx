@@ -38,6 +38,7 @@ import { useAuth } from '../providers/auth-provider';
 import { categories } from '../lib/data';
 import { useTheme } from '../providers/theme-provider';
 import { useLocation, flagEmoji } from '../providers/location-provider';
+import { usePreferences } from '../providers/preferences-provider';
 import { LocationPickerModal } from './location-picker-modal';
 
 export function Navbar() {
@@ -45,6 +46,7 @@ export function Navbar() {
   const { isLoggedIn, user } = useAuth();
   const { isDarkMode, toggleTheme } = useTheme();
   const { country } = useLocation();
+  const { t } = usePreferences();
   const [searchFocused, setSearchFocused] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
@@ -85,9 +87,9 @@ export function Navbar() {
   }, []);
 
   const navLinks = [
-    { href: '/', label: 'Home' },
-    { href: '/shop', label: 'Shop' },
-    { href: '/feed', label: 'Shorts', badge: 'Live' },
+    { href: '/', label: t('nav_home') },
+    { href: '/shop', label: t('nav_shop') },
+    { href: '/feed', label: t('nav_shorts'), badge: 'Live' },
   ];
 
   return (
@@ -111,7 +113,7 @@ export function Navbar() {
                 <div className="flex items-center gap-4">
                   <span className="flex items-center gap-1.5">
                     <Headphones className="w-3.5 h-3.5" />
-                    24/7 Support
+                    {t('top_support')}
                   </span>
                 </div>
               </div>
@@ -121,16 +123,16 @@ export function Navbar() {
                   className="flex items-center gap-1.5 hover:text-white/80 transition-colors"
                 >
                   {mounted && isDarkMode ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
-                  <span>{mounted && isDarkMode ? 'Light' : 'Dark'}</span>
+                  <span>{mounted && isDarkMode ? t('top_light') : t('top_dark')}</span>
                 </button>
                 <div className="h-3 w-px bg-white/20" />
                 {mounted && isLoggedIn ? (
-                  <Link href="/account" className="hover:text-white/80 transition-colors">My Account</Link>
+                  <Link href="/account" className="hover:text-white/80 transition-colors">{t('top_my_account')}</Link>
                 ) : (
                   <div className="flex items-center gap-3">
-                    <Link href="/auth/login" className="hover:text-white/80 transition-colors">Login</Link>
+                    <Link href="/auth/login" className="hover:text-white/80 transition-colors">{t('top_login')}</Link>
                     <span className="text-white/40">|</span>
-                    <Link href="/auth/signup" className="hover:text-white/80 transition-colors">Register</Link>
+                    <Link href="/auth/signup" className="hover:text-white/80 transition-colors">{t('top_register')}</Link>
                   </div>
                 )}
               </div>
@@ -201,7 +203,7 @@ export function Navbar() {
                   </div>
                   <input
                     type="text"
-                    placeholder="Search for products, brands and more..."
+                    placeholder={t('search_placeholder')}
                     className="w-full bg-elevated border border-theme rounded-xl py-3 pl-36 pr-12 text-sm text-theme-primary placeholder:text-theme-muted focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
                     onFocus={() => setSearchFocused(true)}
                     onBlur={() => setSearchFocused(false)}
@@ -258,7 +260,7 @@ export function Navbar() {
                   <div className="w-6 h-6 bg-white/20 rounded-lg flex items-center justify-center">
                     <Plus className="w-4 h-4" />
                   </div>
-                  Sell Now
+                  {t('nav_sell_now')}
                 </Link>
               </div>
             </div>
@@ -300,7 +302,7 @@ export function Navbar() {
               <div className="flex items-center gap-4 text-xs text-theme-muted">
                 <span className="flex items-center gap-1.5">
                   <Shield className="w-3.5 h-3.5 text-emerald-500" />
-                  Buyer Protection
+                  {t('top_buyer_protect')}
                 </span>
               </div>
             </div>
@@ -335,7 +337,7 @@ export function Navbar() {
             <Link href="/search" className="flex-1 relative block">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-theme-muted" />
               <div className="w-full bg-elevated border border-theme rounded-xl py-2.5 pl-9 pr-3 text-sm text-theme-muted">
-                Search products...
+                {t('search_placeholder_mobile')}
               </div>
             </Link>
             <Link href="/notifications" className="relative p-2 rounded-xl hover:bg-elevated text-theme-secondary">
@@ -350,11 +352,11 @@ export function Navbar() {
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-surface border-t border-theme z-50 shadow-nav">
         <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-2">
           {[
-            { href: '/', label: 'Home', icon: Home, special: false },
-            { href: '/categories', label: 'Shop', icon: LayoutGrid, special: false },
-            { href: '/sell', label: 'Sell', icon: Plus, special: true },
-            { href: '/feed', label: 'Feed', icon: PlayCircle, special: false },
-            { href: '/account', label: 'Account', icon: UserCircle, special: false },
+            { href: '/', label: t('nav_home'), icon: Home, special: false },
+            { href: '/categories', label: t('nav_shop'), icon: LayoutGrid, special: false },
+            { href: '/sell', label: t('nav_sell'), icon: Plus, special: true },
+            { href: '/feed', label: t('nav_feed'), icon: PlayCircle, special: false },
+            { href: '/account', label: t('nav_account'), icon: UserCircle, special: false },
           ].map((item) => {
             const isActive = pathname === item.href;
             const Icon = item.icon;
@@ -364,7 +366,7 @@ export function Navbar() {
                   <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center shadow-lg shadow-primary/30">
                     <Icon className="w-5 h-5 text-white" strokeWidth={2.5} />
                   </div>
-                  <span className="text-[10px] font-semibold text-theme-primary">Sell</span>
+                  <span className="text-[10px] font-semibold text-theme-primary">{t('nav_sell')}</span>
                 </Link>
               );
             }

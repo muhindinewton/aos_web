@@ -12,7 +12,7 @@ type SheetType = 'language' | 'country' | 'currency' | null;
 function PreferencesPage() {
   const router = useRouter();
   const { country, setCountry } = useLocation();
-  const { language, setLanguage, currency, setCurrencyCode } = usePreferences();
+  const { language, setLanguage, currency, setCurrencyCode, t } = usePreferences();
   const [openSheet, setOpenSheet] = useState<SheetType>(null);
   const [query, setQuery] = useState('');
 
@@ -52,30 +52,30 @@ function PreferencesPage() {
     {
       key: 'language' as SheetType,
       icon: Languages,
-      title: 'Language',
+      title: t('pref_language'),
       value: language,
-      description: 'Controls how text appears in the app.',
+      description: t('pref_language_desc'),
     },
     {
       key: 'country' as SheetType,
       icon: MapPin,
-      title: 'Country',
+      title: t('pref_country'),
       value: `${flagEmoji(country.code)} ${country.name}`,
-      description: 'Determines nearby listings and where your ads appear.',
+      description: t('pref_country_desc'),
     },
     {
       key: 'currency' as SheetType,
       icon: DollarSign,
-      title: 'Currency',
+      title: t('pref_currency'),
       value: `${currency.symbol} ${currency.code}`,
-      description: 'Used for prices when viewing and posting listings.',
+      description: t('pref_currency_desc'),
     },
   ];
 
   const sheetTitle: Record<string, string> = {
-    language: 'Select Language',
-    country: 'Select Country',
-    currency: 'Select Currency',
+    language: t('select_language'),
+    country: t('select_country'),
+    currency: t('select_currency'),
   };
 
   return (
@@ -88,10 +88,10 @@ function PreferencesPage() {
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <h1 className="flex-1 text-center text-lg font-semibold text-theme-primary">Preferences</h1>
+          <h1 className="flex-1 text-center text-lg font-semibold text-theme-primary">{t('preferences')}</h1>
           <div className="w-11" />
         </div>
-        <p className="text-sm text-theme-muted mb-6 text-center">Manage how the app works for you</p>
+        <p className="text-sm text-theme-muted mb-6 text-center">{t('pref_subtitle')}</p>
 
         <div className="space-y-3">
           {preferences.map(({ key, icon: Icon, title, value, description }) => (
@@ -132,7 +132,7 @@ function PreferencesPage() {
                   type="text"
                   value={query}
                   onChange={e => setQuery(e.target.value)}
-                  placeholder={`Search ${openSheet}...`}
+                  placeholder={openSheet === 'language' ? t('search_language') : openSheet === 'currency' ? t('search_currency') : t('search_country')}
                   className="w-full bg-elevated border border-theme rounded-xl py-2.5 pl-9 pr-9 text-sm text-theme-primary placeholder:text-theme-muted outline-none focus:border-primary transition-colors"
                 />
                 {query && (
