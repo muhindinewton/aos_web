@@ -1,299 +1,347 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Store, Heart, Smartphone, Tag, Users, Package, Star } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import {
+  Globe, ShoppingCart, Truck, Plane, MapPin, Store, Languages, Package,
+} from 'lucide-react';
 
-interface SplashScreenProps {
-  onComplete: () => void;
+// ─── Types ────────────────────────────────────────────────────────────────────
+interface SplashScreenProps { onComplete: () => void; }
+interface Bubble { x: number; y: number; radius: number; speed: number; phase: number; }
+type SplashPhase = 'init' | 'logo' | 'wheel' | 'text' | 'done';
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+const RING_RADIUS   = 130;          // px — matches mobile's size.width*0.32 ≈ 125
+const INNER_R       = 57.5;         // half of logo 115px
+const OUTER_R       = RING_RADIUS - 24;
+const WHEEL_ICONS   = [Globe, ShoppingCart, Truck, Plane, MapPin, Store, Languages, Package];
+const PRIMARY_RED   = '#C1121F';
+
+// ─── Easing helpers ───────────────────────────────────────────────────────────
+const easeOutCubic    = (t: number) => 1 - Math.pow(1 - t, 3);
+const easeInCubic     = (t: number) => t * t * t;
+const easeInOut       = (t: number) => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+const easeOutSine     = (t: number) => Math.sin(t * Math.PI / 2);
+const easeInSine      = (t: number) => 1 - Math.cos(t * Math.PI / 2);
+const easeInOutCubic  = (t: number) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+function sleep(ms: number) { return new Promise<void>(r => setTimeout(r, ms)); }
+
+function generateBubbles(): Bubble[] {
+  return Array.from({ length: 12 }, () => ({
+    x:      Math.random(),
+    y:      Math.random(),
+    radius: 30 + Math.random() * 80,
+    speed:  0.3 + Math.random() * 0.7,
+    phase:  Math.random() * Math.PI * 2,
+  }));
 }
 
-// Mirror of mobile app scatter elements
-// angle: radians, dist: fraction of screen height, spin: degrees rotation at peak
-const ICONS = [
-  { Icon: ShoppingCart, angle: 0.52,  dist: 0.27, size: 28, spin: -20 },
-  { Icon: Store,        angle: 2.62,  dist: 0.25, size: 30, spin:  14 },
-  { Icon: Heart,        angle: 4.19,  dist: 0.23, size: 26, spin: -23 },
-  { Icon: Smartphone,   angle: 1.22,  dist: 0.22, size: 24, spin:  17 },
-  { Icon: Tag,          angle: 3.49,  dist: 0.21, size: 26, spin: -11 },
-  { Icon: Users,        angle: 5.76,  dist: 0.24, size: 28, spin:  23 },
-  { Icon: Package,      angle: 0.87,  dist: 0.20, size: 24, spin: -17 },
-  { Icon: Star,         angle: 3.14,  dist: 0.26, size: 26, spin:  11 },
-];
+// ─── Logo image with text fallback ───────────────────────────────────────────
+function LogoImage() {
+  const [failed, setFailed] = useState(false);
+  if (failed) {
+    return (
+      <span style={{ fontFamily: 'Poppins, sans-serif', fontWeight: 900, fontSize: 30, color: PRIMARY_RED, letterSpacing: -1, lineHeight: 1 }}>
+        AOS
+      </span>
+    );
+  }
+  return (
+    <img
+      src="/logo_redone.png"
+      alt="AOS"
+      onError={() => setFailed(true)}
+      style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+    />
+  );
+}
 
-const DOTS = [
-  { angle: 1.57, dist: 0.32, size: 8 },
-  { angle: 4.71, dist: 0.30, size: 6 },
-  { angle: 2.09, dist: 0.35, size: 7 },
-  { angle: 5.24, dist: 0.19, size: 9 },
-];
-
-const DASHES = [
-  { angle: 0.26, dist: 0.28, width: 18, spin: 46 },
-  { angle: 3.84, dist: 0.23, width: 14, spin: -29 },
-  { angle: 2.36, dist: 0.30, width: 16, spin:  34 },
-];
-
-type Phase = 'init' | 'logo' | 'ring' | 'scatter-out' | 'scatter-in' | 'text' | 'fade';
-
-// Ring sub-phase drives the two-circle illusion
-type RingPhase = 'none' | 'grow' | 'donut' | 'thin' | 'hold' | 'contract';
-
-export function SplashScreen({ onComplete }: SplashScreenProps) {
-  const [phase, setPhase] = useState<Phase>('init');
-  const [ringPhase, setRingPhase] = useState<RingPhase>('none');
-  const [screenH, setScreenH] = useState(700);
-
-  useEffect(() => {
-    setScreenH(window.innerHeight);
-  }, []);
-
-  useEffect(() => {
-    const run = async () => {
-      await sleep(150);
-      setPhase('logo');
-
-      await sleep(750);
-      setPhase('ring');
-      setRingPhase('grow');
-
-      await sleep(480);   // grow phase
-      setRingPhase('donut');
-
-      await sleep(560);   // donut phase
-      setRingPhase('thin');
-
-      // scatter-out starts during thin phase
-      await sleep(220);
-      setPhase('scatter-out');
-
-      await sleep(500);   // ring finishes thinning
-      setRingPhase('hold');
-
-      await sleep(300);   // hold
-      setRingPhase('contract');
-
-      await sleep(200);   // brief overlap
-      setPhase('scatter-in');
-
-      await sleep(700);   // ring fully gone
-      setRingPhase('none');
-
-      await sleep(200);   // elements arrive back
-      setPhase('text');
-
-      await sleep(1000);
-      setPhase('fade');
-
-      await sleep(600);
-      onComplete();
-    };
-    run();
-  }, [onComplete]);
-
-  const isOut = phase === 'scatter-out';
-  const isIn  = phase === 'scatter-in';
-
-  // Ring sizing — capped so animation stays compact on all screen sizes
-  const ref    = Math.min(screenH, 420);
-  const maxR   = Math.min(ref * 0.40, 220);
-  const outerD = maxR * 2;
-
-  // Compute scatter pixel offsets
-  const iconPos  = ICONS.map(el => ({
-    x: Math.cos(el.angle) * el.dist * ref,
-    y: Math.sin(el.angle) * el.dist * ref,
-  }));
-  const dotPos   = DOTS.map(el => ({
-    x: Math.cos(el.angle) * el.dist * ref,
-    y: Math.sin(el.angle) * el.dist * ref,
-  }));
-  const dashPos  = DASHES.map(el => ({
-    x: Math.cos(el.angle) * el.dist * ref,
-    y: Math.sin(el.angle) * el.dist * ref,
-  }));
-
-  const ringStyles = (() => {
-    if (ringPhase === 'none') return { outer: { width: 0, height: 0, opacity: 0, borderRadius: '50%', background: 'var(--primary)' }, inner: { width: 0, height: 0, opacity: 0 } };
-
-    const ringColor = 'var(--primary)';
-
-    switch (ringPhase) {
-      case 'grow':
-        return {
-          outer: { width: outerD, height: outerD, background: ringColor, borderRadius: '50%', opacity: 1, transition: 'width 480ms cubic-bezier(0.33,1,0.68,1), height 480ms cubic-bezier(0.33,1,0.68,1), opacity 200ms ease' },
-          inner: { width: 0, height: 0, opacity: 0, borderRadius: '50%', background: 'white', transition: 'none' },
-        };
-      case 'donut':
-        return {
-          outer: { width: outerD, height: outerD, background: ringColor, borderRadius: '50%', opacity: 1, transition: 'width 100ms, height 100ms' },
-          inner: { width: outerD * 0.60, height: outerD * 0.60, opacity: 1, borderRadius: '50%', background: 'white', transition: 'width 560ms cubic-bezier(0.33,1,0.68,1), height 560ms cubic-bezier(0.33,1,0.68,1), opacity 200ms ease' },
-        };
-      case 'thin':
-        return {
-          outer: { width: outerD * 1.14, height: outerD * 1.14, background: ringColor, borderRadius: '50%', opacity: 1, transition: 'width 720ms linear, height 720ms linear' },
-          inner: { width: outerD * 1.14 - 6, height: outerD * 1.14 - 6, opacity: 1, borderRadius: '50%', background: 'white', transition: 'width 720ms linear, height 720ms linear' },
-        };
-      case 'hold':
-        return {
-          outer: { width: outerD * 1.14, height: outerD * 1.14, background: ringColor, borderRadius: '50%', opacity: 1, transition: 'width 300ms, height 300ms' },
-          inner: { width: outerD * 1.14 - 6, height: outerD * 1.14 - 6, opacity: 1, borderRadius: '50%', background: 'white', transition: 'width 300ms, height 300ms' },
-        };
-      case 'contract':
-        return {
-          outer: { width: 0, height: 0, background: ringColor, borderRadius: '50%', opacity: 0, transition: 'width 700ms cubic-bezier(0.37,0,0.63,1), height 700ms cubic-bezier(0.37,0,0.63,1), opacity 500ms ease 200ms' },
-          inner: { width: 0, height: 0, opacity: 0, borderRadius: '50%', background: 'white', transition: 'width 700ms cubic-bezier(0.37,0,0.63,1), height 700ms cubic-bezier(0.37,0,0.63,1), opacity 300ms ease' },
-        };
-      default:
-        return { outer: {}, inner: {} };
-    }
-  })();
+// ─── Wheel (ring + spokes + icon circles) ────────────────────────────────────
+function Wheel() {
+  const n         = WHEEL_ICONS.length;
+  const container = RING_RADIUS * 2 + 120;
+  const cx        = container / 2;
+  const cy        = container / 2;
 
   return (
-    <div
-      className="fixed inset-0 z-[200] bg-white overflow-hidden"
-      style={{
-        opacity: phase === 'fade' ? 0 : 1,
-        transition: phase === 'fade' ? 'opacity 600ms ease' : 'none',
-      }}
-    >
-      {/* ── Ring (two-circle donut illusion, centered) ── */}
-      <div
-        className="absolute"
-        style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}
+    <div style={{ position: 'relative', width: container, height: container }}>
+      {/* SVG ring + spokes */}
+      <svg
+        width={container} height={container}
+        style={{ position: 'absolute', inset: 0 }}
       >
-        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', ...ringStyles.outer }}>
-          <div style={{ position: 'absolute', ...ringStyles.inner }} />
-        </div>
-      </div>
+        {/* Ring */}
+        <circle
+          cx={cx} cy={cy} r={RING_RADIUS}
+          fill="none"
+          stroke={PRIMARY_RED} strokeWidth={1.2} strokeOpacity={0.35}
+        />
+        {/* Spokes */}
+        {Array.from({ length: n }, (_, i) => {
+          const angle = -Math.PI / 2 + (2 * Math.PI * i / n);
+          return (
+            <line key={i}
+              x1={cx + INNER_R * Math.cos(angle)}
+              y1={cy + INNER_R * Math.sin(angle)}
+              x2={cx + OUTER_R * Math.cos(angle)}
+              y2={cy + OUTER_R * Math.sin(angle)}
+              stroke={PRIMARY_RED} strokeWidth={0.8} strokeOpacity={0.22}
+              strokeLinecap="round"
+            />
+          );
+        })}
+      </svg>
 
-      {/* ── Icon scatter elements ── */}
-      {ICONS.map((el, i) => {
-        const staggerMs = i * 45;
-        const { x, y } = iconPos[i];
+      {/* Icon circles */}
+      {WHEEL_ICONS.map((Icon, i) => {
+        const angle = -Math.PI / 2 + (2 * Math.PI * i / n);
+        const x     = cx + RING_RADIUS * Math.cos(angle) - 24;
+        const y     = cy + RING_RADIUS * Math.sin(angle) - 24;
         return (
           <div
-            key={`icon-${i}`}
+            key={i}
             style={{
-              position: 'absolute',
-              left: '50%',
-              top: '50%',
-              zIndex: 2,
-              transform: isOut
-                ? `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) rotate(${el.spin}deg)`
-                : `translate(-50%, -50%) rotate(0deg)`,
-              opacity: isOut ? 1 : 0,
-              transition: isOut
-                ? `transform 750ms cubic-bezier(0.33,1,0.68,1) ${staggerMs}ms, opacity 350ms ease ${staggerMs}ms`
-                : isIn
-                ? `transform 750ms cubic-bezier(0.37,0,0.63,1), opacity 600ms ease`
-                : 'opacity 150ms ease',
-            }}
-          >
-            <el.Icon className="text-primary" style={{ width: el.size, height: el.size }} />
-          </div>
-        );
-      })}
-
-      {/* ── Dot scatter elements ── */}
-      {DOTS.map((el, i) => {
-        const staggerMs = (ICONS.length + i) * 45;
-        const { x, y } = dotPos[i];
-        return (
-          <div
-            key={`dot-${i}`}
-            style={{
-              position: 'absolute',
-              left: '50%',
-              top: '50%',
-              zIndex: 2,
-              width: el.size,
-              height: el.size,
+              position:     'absolute',
+              left:         x,
+              top:          y,
+              width:        48,
+              height:       48,
               borderRadius: '50%',
-              background: 'var(--primary)',
-              transform: isOut
-                ? `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`
-                : `translate(-50%, -50%)`,
-              opacity: isOut ? 0.75 : 0,
-              transition: isOut
-                ? `transform 750ms cubic-bezier(0.33,1,0.68,1) ${staggerMs}ms, opacity 350ms ease ${staggerMs}ms`
-                : isIn
-                ? `transform 750ms cubic-bezier(0.37,0,0.63,1), opacity 600ms ease`
-                : 'opacity 150ms ease',
-            }}
-          />
-        );
-      })}
-
-      {/* ── Dash scatter elements ── */}
-      {DASHES.map((el, i) => {
-        const staggerMs = (ICONS.length + DOTS.length + i) * 45;
-        const { x, y } = dashPos[i];
-        return (
-          <div
-            key={`dash-${i}`}
-            style={{
-              position: 'absolute',
-              left: '50%',
-              top: '50%',
-              zIndex: 2,
-              width: el.width,
-              height: 3,
-              borderRadius: 2,
-              background: 'var(--primary)',
-              transform: isOut
-                ? `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) rotate(${el.spin}deg)`
-                : `translate(-50%, -50%) rotate(0deg)`,
-              opacity: isOut ? 0.8 : 0,
-              transition: isOut
-                ? `transform 750ms cubic-bezier(0.33,1,0.68,1) ${staggerMs}ms, opacity 350ms ease ${staggerMs}ms`
-                : isIn
-                ? `transform 750ms cubic-bezier(0.37,0,0.63,1), opacity 600ms ease`
-                : 'opacity 150ms ease',
-            }}
-          />
-        );
-      })}
-
-      {/* ── Logo + text (always on top) ── */}
-      <div
-        className="absolute inset-0 flex items-center justify-center"
-        style={{ zIndex: 10 }}
-      >
-        <div className="flex flex-col items-center">
-          {/* Logo box */}
-          <div
-            style={{
-              transform: phase === 'init' ? 'scale(0)' : 'scale(1)',
-              opacity:   phase === 'init' ? 0 : 1,
-              transition: 'transform 750ms cubic-bezier(0.34,1.56,0.64,1), opacity 600ms ease-out',
+              background:   'white',
+              display:      'flex',
+              alignItems:   'center',
+              justifyContent: 'center',
+              boxShadow:    `0 2px 8px rgba(193,18,31,0.12), 0 1px 3px rgba(0,0,0,0.06)`,
             }}
           >
-            <div className="w-[80px] h-[80px] rounded-2xl bg-black shadow-2xl flex items-center justify-center">
-              <span className="text-primary font-black text-2xl tracking-tight">AOS</span>
-            </div>
+            <Icon style={{ width: 22, height: 22, color: PRIMARY_RED }} />
           </div>
-
-          {/* Text reveal */}
-          <div
-            style={{
-              opacity:   phase === 'text' || phase === 'fade' ? 1 : 0,
-              transform: phase === 'text' || phase === 'fade' ? 'translateY(0px)' : 'translateY(18px)',
-              marginTop: phase === 'text' || phase === 'fade' ? '28px' : '0px',
-              transition: 'opacity 750ms cubic-bezier(0.33,1,0.68,1), transform 750ms cubic-bezier(0.33,1,0.68,1), margin-top 400ms ease',
-              textAlign: 'center',
-            }}
-          >
-            <h1 className="text-3xl font-black text-gray-900 tracking-[0.35em]">AOS</h1>
-            <p className="text-[10px] font-semibold text-gray-400 tracking-[0.3em] mt-1.5">
-              AFRICA ONLINE STORES
-            </p>
-          </div>
-        </div>
-      </div>
+        );
+      })}
     </div>
   );
 }
 
-function sleep(ms: number) {
-  return new Promise<void>(resolve => setTimeout(resolve, ms));
+// ─── Main component ───────────────────────────────────────────────────────────
+export function SplashScreen({ onComplete }: SplashScreenProps) {
+  const canvasRef   = useRef<HTMLCanvasElement>(null);
+  const bubblesRef  = useRef<Bubble[]>(generateBubbles());
+  const rafBubbles  = useRef<number>(0);
+
+  const [phase,        setPhase]        = useState<SplashPhase>('init');
+  const [wheelProg,    setWheelProg]    = useState(0);
+  const [textProg,     setTextProg]     = useState(0);
+  const [fading,       setFading]       = useState(false);
+
+  // ── Bubble canvas animation ─────────────────────────────────────────────────
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const resize = () => {
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    const draw = (ts: number) => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const progress = (ts / 12000) % 1;
+
+      for (const b of bubblesRef.current) {
+        const time = progress * Math.PI * 2 + b.phase;
+        const t1   = time * b.speed;
+        const t2   = time * b.speed * 0.6 + 1.2;
+        const t3   = time * b.speed * 0.3 + 2.4;
+        const fx   = Math.sin(t1) * 12 + Math.sin(t2) * 8 + Math.cos(t3) * 5;
+        const fy   = Math.cos(t1 * 0.8) * 10 + Math.sin(t2 * 0.7) * 6;
+        const x    = b.x * canvas.width  + fx;
+        const y    = b.y * canvas.height + fy;
+        const pulse = 1 + (Math.sin(time * 0.8) * 0.5 + 0.5) * 0.08;
+        const r    = b.radius * pulse;
+
+        const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+        g.addColorStop(0,    'rgba(193,18,31,0.125)');
+        g.addColorStop(0.45, 'rgba(193,18,31,0.055)');
+        g.addColorStop(1,    'rgba(193,18,31,0)');
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fillStyle = g;
+        ctx.fill();
+      }
+      rafBubbles.current = requestAnimationFrame(draw);
+    };
+    rafBubbles.current = requestAnimationFrame(draw);
+
+    return () => {
+      cancelAnimationFrame(rafBubbles.current);
+      window.removeEventListener('resize', resize);
+    };
+  }, []);
+
+  // ── Main animation sequence ─────────────────────────────────────────────────
+  const animate = useCallback((duration: number, setter: (v: number) => void) =>
+    new Promise<void>(resolve => {
+      const start = performance.now();
+      const tick  = (now: number) => {
+        const p = Math.min((now - start) / duration, 1);
+        setter(p);
+        if (p < 1) requestAnimationFrame(tick);
+        else resolve();
+      };
+      requestAnimationFrame(tick);
+    }), []);
+
+  useEffect(() => {
+    const run = async () => {
+      await sleep(350);
+      setPhase('logo');
+
+      await sleep(700);
+      setPhase('wheel');
+      await animate(3200, setWheelProg);
+
+      setPhase('text');
+      await animate(1000, setTextProg);
+
+      await sleep(900);
+      setFading(true);
+      await sleep(600);
+      onComplete();
+    };
+    run();
+  }, [animate, onComplete]);
+
+  // ── Wheel scale TweenSequence (mirrors Flutter) ─────────────────────────────
+  const wheelScale = (() => {
+    const p = wheelProg;
+    if (p < 0.28) return easeOutCubic(p / 0.28);
+    if (p < 0.50) return 1 + easeInOut((p - 0.28) / 0.22) * 0.02;
+    if (p < 0.72) return 1.02 - easeInOut((p - 0.50) / 0.22) * 0.02;
+    return 1 - easeInCubic((p - 0.72) / 0.28);
+  })();
+
+  const wheelFade = (() => {
+    const p = wheelProg;
+    if (p < 0.22) return easeOutSine(p / 0.22);
+    if (p < 0.78) return 1;
+    return 1 - easeInSine((p - 0.78) / 0.22);
+  })();
+
+  const wheelRot     = easeInOutCubic(wheelProg) * Math.PI * 0.35; // radians
+
+  const showLogo     = phase !== 'init';
+  const showWheel    = phase === 'wheel' || phase === 'text' || phase === 'done';
+  const showText     = phase === 'text'  || phase === 'done';
+
+  const textOpacity  = easeOutCubic(textProg);
+  const textY        = (1 - easeOutCubic(textProg)) * 14;
+  const subOpacity   = Math.max(0, (textProg - 0.15) / 0.85);
+  const subY         = (1 - easeOutCubic(Math.max(0, (textProg - 0.1) / 0.9))) * 12;
+
+  return (
+    <div
+      className="fixed inset-0 z-[200] overflow-hidden"
+      style={{
+        background: 'linear-gradient(to bottom, #FFF5F5 0%, #FAF0F0 35%, #F5F8F5 70%, #F8F8F8 100%)',
+        opacity:    fading ? 0 : 1,
+        transition: fading ? 'opacity 600ms ease' : 'none',
+      }}
+    >
+      {/* ── Kenyan flag accent layers ── */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '22%',
+          background: 'linear-gradient(to bottom, rgba(0,0,0,0.11) 0%, rgba(0,0,0,0) 100%)' }} />
+        <div style={{ position: 'absolute', top: '21%', left: 0, right: 0, height: '2.5%',
+          background: 'rgba(255,255,255,0.22)' }} />
+        <div style={{ position: 'absolute', inset: 0,
+          background: 'radial-gradient(ellipse at center, rgba(193,18,31,0.15) 0%, rgba(193,18,31,0) 70%)' }} />
+        <div style={{ position: 'absolute', top: '76.5%', left: 0, right: 0, height: '2.5%',
+          background: 'rgba(255,255,255,0.22)' }} />
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '22%',
+          background: 'linear-gradient(to top, rgba(0,102,0,0.12) 0%, rgba(0,102,0,0) 100%)' }} />
+      </div>
+
+      {/* ── Floating bubbles canvas ── */}
+      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
+
+      {/* ── Icon wheel ── */}
+      {showWheel && (
+        <div
+          className="absolute inset-0 flex items-center justify-center"
+          style={{
+            transform: `scale(${wheelScale}) rotate(${wheelRot}rad)`,
+            opacity:   Math.max(0, Math.min(1, wheelFade)),
+          }}
+        >
+          <Wheel />
+        </div>
+      )}
+
+      {/* ── Center content (logo + text) ── */}
+      <div className="absolute inset-0 flex items-center justify-center" style={{ zIndex: 10 }}>
+        <div className="flex flex-col items-center">
+
+          {/* Logo card */}
+          <div style={{
+            width:        115,
+            height:       115,
+            borderRadius: 26,
+            background:   'white',
+            display:      'flex',
+            alignItems:   'center',
+            justifyContent: 'center',
+            padding:      14,
+            boxShadow:    '0 8px 32px rgba(193,18,31,0.10), 0 2px 12px rgba(0,0,0,0.07)',
+            transform:    showLogo ? 'scale(1)' : 'scale(0)',
+            opacity:      showLogo ? 1 : 0,
+            transition:   'transform 900ms cubic-bezier(0.34,1.56,0.64,1), opacity 540ms ease-out',
+          }}>
+            <LogoImage />
+          </div>
+
+          {/* Final text */}
+          {showText && (
+            <div className="flex flex-col items-center" style={{ marginTop: textProg * 32 }}>
+              <div style={{ opacity: textOpacity, transform: `translateY(${textY}px)` }}>
+                <span style={{
+                  fontFamily:   '"Playfair Display", Georgia, serif',
+                  fontWeight:   800,
+                  fontSize:     52,
+                  color:        '#1A1A1A',
+                  letterSpacing: 16,
+                  display:      'block',
+                  textAlign:    'center',
+                }}>
+                  AOS
+                </span>
+              </div>
+              <div style={{
+                opacity:   Math.max(0, Math.min(1, subOpacity)),
+                transform: `translateY(${subY}px)`,
+                marginTop: textProg * 10,
+              }}>
+                <span style={{
+                  fontFamily:   'Poppins, sans-serif',
+                  fontWeight:   600,
+                  fontSize:     12,
+                  color:        '#888888',
+                  letterSpacing: 5,
+                  display:      'block',
+                  textAlign:    'center',
+                }}>
+                  AFRICA ONLINE STORES
+                </span>
+              </div>
+            </div>
+          )}
+
+        </div>
+      </div>
+    </div>
+  );
 }

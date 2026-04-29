@@ -29,7 +29,7 @@ export function AppWrapper({ children }: AppWrapperProps) {
   return (
     <>
       {mounted && showSplash && <SplashScreen onComplete={handleSplashComplete} />}
-      <div className={mounted && showSplash ? 'opacity-0' : 'opacity-100 transition-opacity duration-300'}>
+      <div className={!mounted || showSplash ? 'opacity-0' : 'opacity-100 transition-opacity duration-300'}>
         {children}
       </div>
     </>

@@ -293,143 +293,147 @@ export default function ShortVideoPage() {
 
   /* ── CAMERA / PREVIEW SCREEN ── */
   return (
-    <div className="fixed inset-0 z-[100] bg-black">
-      {/* Progress bar */}
-      <div className="absolute top-0 left-0 right-0 h-1 bg-white/20 z-20">
-        <div className="h-full bg-primary transition-all duration-500" style={{ width: `${pct}%` }} />
-      </div>
+    <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center">
+      {/* 9:16 portrait container — matches shorts feed width */}
+      <div className="relative h-full w-full" style={{ maxWidth: 'calc(100vh * 9 / 16)', maxHeight: '100vh' }}>
 
-      {/* Header */}
-      <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 pt-3 pb-2">
-        <button onClick={() => router.back()} className="w-10 h-10 rounded-full bg-black/40 flex items-center justify-center">
-          <ChevronLeft className="w-5 h-5 text-white" />
-        </button>
-        <div className="px-3 py-1.5 rounded-full bg-black/50">
-          <span className="text-white text-xs font-semibold">{fmt(timer)} / {fmt(maxDur)}</span>
+        {/* Progress bar */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-white/20 z-20">
+          <div className="h-full bg-primary transition-all duration-500" style={{ width: `${pct}%` }} />
         </div>
-        {recState !== 'preview' ? (
+
+        {/* Header */}
+        <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 pt-3 pb-2">
           <button onClick={() => router.back()} className="w-10 h-10 rounded-full bg-black/40 flex items-center justify-center">
-            <X className="w-5 h-5 text-white" />
+            <ChevronLeft className="w-5 h-5 text-white" />
           </button>
-        ) : <div className="w-10 h-10" />}
-      </div>
-
-      {/* Camera / Preview */}
-      {recState !== 'preview' ? (
-        <video ref={videoRef} autoPlay playsInline muted className="absolute inset-0 w-full h-full object-cover" />
-      ) : (
-        <video ref={previewRef} src={recordedUrl || ''} autoPlay loop playsInline
-          className="absolute inset-0 w-full h-full object-cover" />
-      )}
-
-      {/* Error */}
-      {error && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-10 p-6">
-          <div className="text-center">
-            <Camera className="w-16 h-16 text-white/30 mx-auto mb-4" />
-            <p className="text-white text-lg font-semibold mb-2">Camera Required</p>
-            <p className="text-white/60 text-sm mb-5">{error}</p>
-            <button onClick={() => startCamera()} className="px-6 py-2.5 bg-primary rounded-full text-white font-semibold">Try Again</button>
+          <div className="px-3 py-1.5 rounded-full bg-black/50">
+            <span className="text-white text-xs font-semibold">{fmt(timer)} / {fmt(maxDur)}</span>
           </div>
+          {recState !== 'preview' ? (
+            <button onClick={() => router.back()} className="w-10 h-10 rounded-full bg-black/40 flex items-center justify-center">
+              <X className="w-5 h-5 text-white" />
+            </button>
+          ) : <div className="w-10 h-10" />}
         </div>
-      )}
 
-      {/* Right-side controls (idle / recording) */}
-      {recState !== 'preview' && (
-        <div className="absolute right-3 top-1/2 -translate-y-1/2 z-10 flex flex-col items-center gap-5">
-          <button onClick={flipCamera} className="flex flex-col items-center gap-1">
-            <div className="w-11 h-11 rounded-full bg-black/50 flex items-center justify-center">
-              <RotateCcw className="w-5 h-5 text-white" />
+        {/* Camera / Preview */}
+        {recState !== 'preview' ? (
+          <video ref={videoRef} autoPlay playsInline muted className="absolute inset-0 w-full h-full object-cover" />
+        ) : (
+          <video ref={previewRef} src={recordedUrl || ''} autoPlay loop playsInline
+            className="absolute inset-0 w-full h-full object-cover" />
+        )}
+
+        {/* Error */}
+        {error && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-10 p-6">
+            <div className="text-center">
+              <Camera className="w-16 h-16 text-white/30 mx-auto mb-4" />
+              <p className="text-white text-lg font-semibold mb-2">Camera Required</p>
+              <p className="text-white/60 text-sm mb-5">{error}</p>
+              <button onClick={() => startCamera()} className="px-6 py-2.5 bg-primary rounded-full text-white font-semibold">Try Again</button>
             </div>
-            <span className="text-white text-[10px]">Flip</span>
-          </button>
-          <input ref={uploadRef} type="file" accept="video/*" className="hidden" onChange={handleUpload} />
-          <button onClick={() => uploadRef.current?.click()} className="flex flex-col items-center gap-1">
-            <div className="w-11 h-11 rounded-full bg-black/50 flex items-center justify-center">
-              <Upload className="w-5 h-5 text-white" />
+          </div>
+        )}
+
+        {/* Right-side controls (idle / recording) */}
+        {recState !== 'preview' && (
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 z-10 flex flex-col items-center gap-5">
+            <button onClick={flipCamera} className="flex flex-col items-center gap-1">
+              <div className="w-11 h-11 rounded-full bg-black/50 flex items-center justify-center">
+                <RotateCcw className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-white text-[10px]">Flip</span>
+            </button>
+            <input ref={uploadRef} type="file" accept="video/*" className="hidden" onChange={handleUpload} />
+            <button onClick={() => uploadRef.current?.click()} className="flex flex-col items-center gap-1">
+              <div className="w-11 h-11 rounded-full bg-black/50 flex items-center justify-center">
+                <Upload className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-white text-[10px]">Upload</span>
+            </button>
+          </div>
+        )}
+
+        {/* Bottom controls */}
+        <div className="absolute bottom-0 left-0 right-0 z-10 pb-10 bg-gradient-to-t from-black/70 to-transparent pt-8">
+
+          {/* Duration selector — idle only */}
+          {recState === 'idle' && (
+            <div className="flex justify-center gap-2 mb-5">
+              {DURATIONS.map(d => (
+                <button
+                  key={d}
+                  onClick={() => setMaxDur(d)}
+                  className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${
+                    maxDur === d ? 'bg-primary text-white' : 'bg-white/20 text-white'
+                  }`}
+                >
+                  {d}s
+                </button>
+              ))}
             </div>
-            <span className="text-white text-[10px]">Upload</span>
-          </button>
+          )}
+
+          {/* Speed selector — idle only */}
+          {recState === 'idle' && (
+            <div className="flex justify-center gap-3 mb-5">
+              {SPEEDS.map(s => (
+                <button
+                  key={s}
+                  onClick={() => setSpeed(s)}
+                  className={`w-10 h-10 rounded-full text-xs font-bold transition-colors ${
+                    speed === s ? 'bg-primary text-white' : 'bg-white/20 text-white'
+                  }`}
+                >
+                  {s}x
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Record / Stop / Preview buttons */}
+          {recState === 'idle' && (
+            <div className="flex items-center justify-center">
+              <button
+                onClick={startRecording}
+                className="w-20 h-20 rounded-full border-4 border-white flex items-center justify-center shadow-lg"
+                style={{ background: 'var(--primary)' }}
+              >
+                <Video className="w-8 h-8 text-white" />
+              </button>
+            </div>
+          )}
+
+          {recState === 'recording' && (
+            <div className="flex items-center justify-center">
+              <button
+                onClick={stopRecording}
+                className="w-20 h-20 rounded-full border-4 border-white bg-primary flex items-center justify-center shadow-lg"
+              >
+                <Square className="w-8 h-8 text-white" fill="white" />
+              </button>
+            </div>
+          )}
+
+          {recState === 'preview' && (
+            <div className="flex items-center justify-center gap-4 px-6">
+              <button
+                onClick={retake}
+                className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-white/20 rounded-full text-white font-semibold text-sm"
+              >
+                <RotateCcw className="w-4 h-4" /> Retake
+              </button>
+              <button
+                onClick={() => setRecState('details')}
+                className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-primary rounded-full text-white font-semibold text-sm"
+              >
+                <Check className="w-4 h-4" /> Next
+              </button>
+            </div>
+          )}
         </div>
-      )}
-
-      {/* Bottom controls */}
-      <div className="absolute bottom-0 left-0 right-0 z-10 pb-10 bg-gradient-to-t from-black/70 to-transparent pt-8">
-
-        {/* Duration selector — idle only */}
-        {recState === 'idle' && (
-          <div className="flex justify-center gap-2 mb-5">
-            {DURATIONS.map(d => (
-              <button
-                key={d}
-                onClick={() => setMaxDur(d)}
-                className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${
-                  maxDur === d ? 'bg-primary text-white' : 'bg-white/20 text-white'
-                }`}
-              >
-                {d}s
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Speed selector — idle only */}
-        {recState === 'idle' && (
-          <div className="flex justify-center gap-3 mb-5">
-            {SPEEDS.map(s => (
-              <button
-                key={s}
-                onClick={() => setSpeed(s)}
-                className={`w-10 h-10 rounded-full text-xs font-bold transition-colors ${
-                  speed === s ? 'bg-primary text-white' : 'bg-white/20 text-white'
-                }`}
-              >
-                {s}x
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Record / Stop / Preview buttons */}
-        {recState === 'idle' && (
-          <div className="flex items-center justify-center">
-            <button
-              onClick={startRecording}
-              className="w-20 h-20 rounded-full border-4 border-white flex items-center justify-center shadow-lg"
-              style={{ background: 'var(--primary)' }}
-            >
-              <Video className="w-8 h-8 text-white" />
-            </button>
-          </div>
-        )}
-
-        {recState === 'recording' && (
-          <div className="flex items-center justify-center">
-            <button
-              onClick={stopRecording}
-              className="w-20 h-20 rounded-full border-4 border-white bg-primary flex items-center justify-center shadow-lg"
-            >
-              <Square className="w-8 h-8 text-white" fill="white" />
-            </button>
-          </div>
-        )}
-
-        {recState === 'preview' && (
-          <div className="flex items-center justify-center gap-4 px-6">
-            <button
-              onClick={retake}
-              className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-white/20 rounded-full text-white font-semibold text-sm"
-            >
-              <RotateCcw className="w-4 h-4" /> Retake
-            </button>
-            <button
-              onClick={() => setRecState('details')}
-              className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-primary rounded-full text-white font-semibold text-sm"
-            >
-              <Check className="w-4 h-4" /> Next
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );
