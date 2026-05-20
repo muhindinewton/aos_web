@@ -2,20 +2,23 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { 
-  ArrowLeft, 
-  MessageCircle, 
-  Store, 
-  TrendingDown, 
-  Tag, 
-  Radio, 
-  PlayCircle, 
-  UserPlus, 
-  ShoppingBag, 
+import { useRouter } from 'next/navigation';
+import {
+  ArrowLeft,
+  MessageCircle,
+  Store,
+  TrendingDown,
+  Tag,
+  Radio,
+  PlayCircle,
+  UserPlus,
+  ShoppingBag,
   Shield,
   Check,
   Trash2,
-  X
+  X,
+  RotateCw,
+  ArrowRight,
 } from 'lucide-react';
 
 type NotificationType = 'message' | 'listing' | 'price_drop' | 'promotion' | 'live_stream' | 'short_video' | 'follower' | 'order' | 'system';
@@ -158,6 +161,55 @@ const getColor = (type: NotificationType) => {
   }
 };
 
+// Friendly label shown in the detail modal header (mobile shows richer labels than the bare type)
+const getTypeLabel = (type: NotificationType): string => {
+  switch (type) {
+    case 'message':      return 'Message';
+    case 'listing':      return 'Listing Update';
+    case 'price_drop':   return 'Price Drop';
+    case 'promotion':    return 'Promotion';
+    case 'live_stream':  return 'Live Stream';
+    case 'short_video':  return 'Short Video';
+    case 'follower':     return 'New Follower';
+    case 'order':        return 'Order';
+    case 'system':       return 'System';
+  }
+};
+
+// Returns the context-aware primary action for a notification — used both for
+// the inline chip on the card and the primary button in the detail modal.
+// Returning null means there's no actionable destination (modal falls back to "Done").
+type Action = { label: string; href: string; icon?: React.ComponentType<{ className?: string }> };
+
+const getAction = (n: Notification): Action | null => {
+  const body = n.body.toLowerCase();
+  switch (n.type) {
+    case 'message':
+      return { label: 'Open Chat',      href: '/chat',          icon: MessageCircle };
+    case 'live_stream':
+      return n.isRead
+        ? { label: 'Watch Now',         href: '/feed',          icon: Radio }
+        : { label: 'Join Live',         href: '/feed',          icon: Radio };
+    case 'price_drop':
+      return { label: 'View Deal',      href: '/shop',          icon: TrendingDown };
+    case 'order':
+      return { label: 'Respond Now',    href: '/chat',          icon: ShoppingBag };
+    case 'listing':
+      if (body.includes('expired')) return { label: 'Renew Listing', href: '/sell/listings', icon: RotateCw };
+      if (body.includes('approved') || body.includes('live and visible'))
+                                    return { label: 'View Listing',  href: '/sell/listings', icon: Store };
+      return { label: 'View Listings',  href: '/sell/listings', icon: Store };
+    case 'short_video':
+      return { label: 'View Stats',     href: '/feed/profile',  icon: PlayCircle };
+    case 'follower':
+      return { label: 'View Profile',   href: '/feed/profile',  icon: UserPlus };
+    case 'promotion':
+      return { label: 'Shop Sale',      href: '/shop',          icon: Tag };
+    case 'system':
+      return null;
+  }
+};
+
 const formatTime = (date: Date) => {
   const now = new Date();
   const diff = now.getTime() - date.getTime();
@@ -187,9 +239,16 @@ const getTimeGroup = (date: Date) => {
 };
 
 export default function NotificationsPage() {
+  const router = useRouter();
   const [selectedTab, setSelectedTab] = useState(0);
   const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
   const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 2200);
+  };
 
   const filteredNotifications = notifications.filter(n => {
     switch (selectedTab) {
@@ -204,6 +263,7 @@ export default function NotificationsPage() {
 
   const markAllAsRead = () => {
     setNotifications(notifications.map(n => ({ ...n, isRead: true })));
+    showToast('All notifications marked as read');
   };
 
   const markAsRead = (id: string) => {
@@ -307,6 +367,16 @@ export default function NotificationsPage() {
                     {items.map(notification => {
                       const Icon = getIcon(notification.type);
                       const colorClass = getColor(notification.type);
+                      const action = getAction(notification);
+                      // Live unread + expired-listing renewal: surface a prominent inline chip
+                      const showInlineChip =
+                        action && (
+                          (notification.type === 'live_stream' && !notification.isRead) ||
+                          (notification.type === 'listing' && notification.body.toLowerCase().includes('expired')) ||
+                          notification.type === 'price_drop' ||
+                          (notification.type === 'order' && !notification.isRead)
+                        );
+                      const ActionIcon = action?.icon;
 
                       return (
                         <div
@@ -331,6 +401,15 @@ export default function NotificationsPage() {
                                 <span className="text-xs text-theme-muted whitespace-nowrap">{formatTime(notification.createdAt)}</span>
                               </div>
                               <p className="text-sm text-theme-secondary mt-1 line-clamp-2">{notification.body}</p>
+                              {showInlineChip && action && (
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); markAsRead(notification.id); router.push(action.href); }}
+                                  className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary text-white text-xs font-semibold rounded-full hover:bg-primary-hover transition-colors"
+                                >
+                                  {ActionIcon && <ActionIcon className="w-3.5 h-3.5" />}
+                                  {action.label}
+                                </button>
+                              )}
                             </div>
                             {!notification.isRead && (
                               <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-2" />
@@ -371,8 +450,8 @@ export default function NotificationsPage() {
                   {React.createElement(getIcon(selectedNotification.type), { className: 'w-7 h-7' })}
                 </div>
                 <div>
-                  <p className={`text-sm font-semibold capitalize ${getColor(selectedNotification.type).split(' ')[1]}`}>
-                    {selectedNotification.type.replace('_', ' ')}
+                  <p className={`text-sm font-semibold ${getColor(selectedNotification.type).split(' ')[1]}`}>
+                    {getTypeLabel(selectedNotification.type)}
                   </p>
                   <p className="text-xs text-theme-muted">{formatTime(selectedNotification.createdAt)}</p>
                 </div>
@@ -380,31 +459,55 @@ export default function NotificationsPage() {
 
               {/* Title */}
               <h2 className="text-xl font-bold text-theme-primary mb-3">{selectedNotification.title}</h2>
-              
+
               <hr className="border-theme mb-4" />
 
               {/* Body */}
               <p className="text-theme-secondary leading-relaxed mb-6">{selectedNotification.body}</p>
 
-              {/* Actions */}
-              <div className="flex gap-3">
-                <button
-                  onClick={() => deleteNotification(selectedNotification.id)}
-                  className="flex-1 flex items-center justify-center gap-2 py-3 border border-theme rounded-xl text-theme-secondary hover:bg-elevated transition-colors"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Delete
-                </button>
-                <button
-                  onClick={() => setSelectedNotification(null)}
-                  className="flex-1 flex items-center justify-center gap-2 py-3 bg-primary text-white rounded-xl hover:bg-primary-hover transition-colors"
-                >
-                  <Check className="w-4 h-4" />
-                  Done
-                </button>
-              </div>
+              {/* Actions — primary is context-aware (Open Chat, Watch Now, Renew Listing, …) */}
+              {(() => {
+                const action = getAction(selectedNotification);
+                const ActionIcon = action?.icon;
+                return (
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => deleteNotification(selectedNotification.id)}
+                      className="flex-1 flex items-center justify-center gap-2 py-3 border border-theme rounded-xl text-theme-secondary hover:bg-elevated transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Delete
+                    </button>
+                    {action ? (
+                      <button
+                        onClick={() => { setSelectedNotification(null); router.push(action.href); }}
+                        className="flex-1 flex items-center justify-center gap-2 py-3 bg-primary text-white rounded-xl hover:bg-primary-hover transition-colors"
+                      >
+                        {ActionIcon ? <ActionIcon className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
+                        {action.label}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => setSelectedNotification(null)}
+                        className="flex-1 flex items-center justify-center gap-2 py-3 bg-primary text-white rounded-xl hover:bg-primary-hover transition-colors"
+                      >
+                        <Check className="w-4 h-4" />
+                        Done
+                      </button>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Toast */}
+      {toast && (
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[100] bg-green-600 text-white px-5 py-2.5 rounded-full text-sm font-medium shadow-lg flex items-center gap-2">
+          <Check className="w-4 h-4" />
+          {toast}
         </div>
       )}
     </div>

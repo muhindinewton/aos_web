@@ -230,8 +230,8 @@ export function Navbar() {
                   <Heart className="w-5 h-5" />
                   <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-primary rounded-full flex items-center justify-center text-[10px] font-bold text-white">3</span>
                 </Link>
-                <Link 
-                  href="/contact" 
+                <Link
+                  href="/chat"
                   className="relative p-2.5 rounded-xl hover:bg-elevated text-theme-secondary hover:text-theme-primary transition-colors group"
                 >
                   <MessageCircle className="w-5 h-5" />

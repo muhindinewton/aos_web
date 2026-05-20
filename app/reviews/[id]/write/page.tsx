@@ -15,7 +15,16 @@ export default function WriteReviewPage() {
   const [hovered, setHovered] = useState(0);
   const [title, setTitle] = useState('');
   const [detail, setDetail] = useState('');
+  const [photo, setPhoto] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
+
+  const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setPhoto(reader.result as string);
+    reader.readAsDataURL(file);
+  };
 
   const MAX = 200;
   const canSubmit = rating > 0 && detail.trim().length > 0;
@@ -141,10 +150,23 @@ export default function WriteReviewPage() {
         <div className="bg-surface border border-theme rounded-2xl p-5 mb-6">
           <p className="font-semibold text-theme-primary mb-1 text-sm">Add Photo <span className="text-theme-muted font-normal">(optional)</span></p>
           <p className="text-xs text-theme-muted mb-4">Share a photo to help other buyers</p>
-          <button className="flex items-center gap-3 px-4 py-3 rounded-xl border border-dashed border-theme hover:border-primary hover:bg-primary/5 transition-colors text-sm text-theme-secondary">
-            <ImageIcon className="w-5 h-5 text-primary" />
-            Choose from gallery
-          </button>
+          {photo ? (
+            <div className="relative inline-block">
+              <img src={photo} alt="Review attachment" className="w-32 h-32 object-cover rounded-xl border border-theme" />
+              <button
+                onClick={() => setPhoto(null)}
+                className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-black/70 text-white flex items-center justify-center shadow-md"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <label className="flex items-center gap-3 px-4 py-3 rounded-xl border border-dashed border-theme hover:border-primary hover:bg-primary/5 transition-colors text-sm text-theme-secondary cursor-pointer">
+              <ImageIcon className="w-5 h-5 text-primary" />
+              Choose from gallery
+              <input type="file" accept="image/*" className="sr-only" onChange={handlePhoto} />
+            </label>
+          )}
         </div>
 
         {/* Submit */}

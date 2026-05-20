@@ -328,6 +328,69 @@ export const chats: Chat[] = [
       { id: '2', sender: 'other', text: 'Feel free to negotiate the price', timestamp: '8:15 AM' },
     ],
   },
+  {
+    id: '4',
+    name: 'Nairobi Electronics',
+    avatar: 'N',
+    online: false,
+    lastMessage: 'We have restocked the Samsung Galaxy.',
+    timestamp: 'Yesterday',
+    unread: 2,
+    messages: [
+      { id: '1', sender: 'other', text: 'We have restocked the Samsung Galaxy.', timestamp: 'Yesterday' },
+    ],
+  },
+  {
+    id: '5',
+    name: 'Jane Mwangi',
+    avatar: 'J',
+    online: true,
+    lastMessage: 'I can do Ksh 140,000 for the MacBook.',
+    timestamp: '9:45 AM',
+    unread: 1,
+    messages: [
+      { id: '1', sender: 'other', text: 'Hi! Interested in the MacBook?', timestamp: '9:30 AM' },
+      { id: '2', sender: 'user', text: 'Yes — what is your best price?', timestamp: '9:40 AM' },
+      { id: '3', sender: 'other', text: 'I can do Ksh 140,000 for the MacBook.', timestamp: '9:45 AM' },
+    ],
+  },
+  {
+    id: '6',
+    name: 'Peter Ochieng',
+    avatar: 'P',
+    online: false,
+    lastMessage: 'Thanks for the purchase! Enjoy your new gear.',
+    timestamp: 'Yesterday',
+    unread: 0,
+    messages: [
+      { id: '1', sender: 'user', text: 'Order received — thank you!', timestamp: 'Yesterday' },
+      { id: '2', sender: 'other', text: 'Thanks for the purchase! Enjoy your new gear.', timestamp: 'Yesterday' },
+    ],
+  },
+  {
+    id: '7',
+    name: 'Mary Wanjiku',
+    avatar: 'M',
+    online: false,
+    lastMessage: 'Is the price negotiable? I am in Westlands.',
+    timestamp: 'Mon',
+    unread: 0,
+    messages: [
+      { id: '1', sender: 'other', text: 'Is the price negotiable? I am in Westlands.', timestamp: 'Mon' },
+    ],
+  },
+  {
+    id: '8',
+    name: 'David Kimani',
+    avatar: 'D',
+    online: true,
+    lastMessage: 'Can you send more photos of the laptop?',
+    timestamp: 'Sat',
+    unread: 1,
+    messages: [
+      { id: '1', sender: 'other', text: 'Can you send more photos of the laptop?', timestamp: 'Sat' },
+    ],
+  },
 ];
 
 export const feedItems: FeedItem[] = [

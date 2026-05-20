@@ -36,23 +36,27 @@ export const CURRENCIES: CurrencyInfo[] = [
   { code: 'INR', symbol: '₹',    name: 'Indian Rupee',            rateFromKES: 0.64    },
 ];
 
+// `flag` is the country-code whose flag we use to represent the language (purely
+// presentational — many languages span multiple countries, so we pick a primary).
+// `nativeName` is the language's endonym, shown alongside the English name to
+// mirror mobile's picker.
 export const LANGUAGES = [
-  { code: 'en', name: 'English',    dir: 'ltr' as const },
-  { code: 'sw', name: 'Swahili',    dir: 'ltr' as const },
-  { code: 'fr', name: 'French',     dir: 'ltr' as const },
-  { code: 'ar', name: 'Arabic',     dir: 'rtl' as const },
-  { code: 'pt', name: 'Portuguese', dir: 'ltr' as const },
-  { code: 'ha', name: 'Hausa',      dir: 'ltr' as const },
-  { code: 'yo', name: 'Yoruba',     dir: 'ltr' as const },
-  { code: 'ig', name: 'Igbo',       dir: 'ltr' as const },
-  { code: 'am', name: 'Amharic',    dir: 'ltr' as const },
-  { code: 'so', name: 'Somali',     dir: 'ltr' as const },
-  { code: 'zu', name: 'Zulu',       dir: 'ltr' as const },
-  { code: 'xh', name: 'Xhosa',      dir: 'ltr' as const },
-  { code: 'rw', name: 'Kinyarwanda',dir: 'ltr' as const },
-  { code: 'es', name: 'Spanish',    dir: 'ltr' as const },
-  { code: 'de', name: 'German',     dir: 'ltr' as const },
-  { code: 'zh', name: 'Chinese',    dir: 'ltr' as const },
+  { code: 'en', name: 'English',     nativeName: 'English',    flag: 'US', dir: 'ltr' as const },
+  { code: 'sw', name: 'Swahili',     nativeName: 'Kiswahili',  flag: 'KE', dir: 'ltr' as const },
+  { code: 'fr', name: 'French',      nativeName: 'Français',   flag: 'FR', dir: 'ltr' as const },
+  { code: 'ar', name: 'Arabic',      nativeName: 'العربية',     flag: 'SA', dir: 'rtl' as const },
+  { code: 'pt', name: 'Portuguese',  nativeName: 'Português',  flag: 'PT', dir: 'ltr' as const },
+  { code: 'ha', name: 'Hausa',       nativeName: 'Hausa',      flag: 'NG', dir: 'ltr' as const },
+  { code: 'yo', name: 'Yoruba',      nativeName: 'Yorùbá',     flag: 'NG', dir: 'ltr' as const },
+  { code: 'ig', name: 'Igbo',        nativeName: 'Igbo',       flag: 'NG', dir: 'ltr' as const },
+  { code: 'am', name: 'Amharic',     nativeName: 'አማርኛ',       flag: 'ET', dir: 'ltr' as const },
+  { code: 'so', name: 'Somali',      nativeName: 'Soomaali',   flag: 'SO', dir: 'ltr' as const },
+  { code: 'zu', name: 'Zulu',        nativeName: 'isiZulu',    flag: 'ZA', dir: 'ltr' as const },
+  { code: 'xh', name: 'Xhosa',       nativeName: 'isiXhosa',   flag: 'ZA', dir: 'ltr' as const },
+  { code: 'rw', name: 'Kinyarwanda', nativeName: 'Kinyarwanda',flag: 'RW', dir: 'ltr' as const },
+  { code: 'es', name: 'Spanish',     nativeName: 'Español',    flag: 'ES', dir: 'ltr' as const },
+  { code: 'de', name: 'German',      nativeName: 'Deutsch',    flag: 'DE', dir: 'ltr' as const },
+  { code: 'zh', name: 'Chinese',     nativeName: '中文',        flag: 'CN', dir: 'ltr' as const },
 ];
 
 export const COUNTRY_DEFAULT_CURRENCY: Record<string, string> = {
