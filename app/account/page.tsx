@@ -36,11 +36,8 @@ export default function AccountPage() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  const [onboarded, setOnboarded] = useState(true);
-
   useEffect(() => {
     setMounted(true);
-    try { setOnboarded(localStorage.getItem('aos_onboarded') === '1'); } catch {}
   }, []);
 
   const handleLogout = async () => {
@@ -109,27 +106,6 @@ export default function AccountPage() {
               </Link>
             </div>
           </div>
-        )}
-
-        {/* Personalize Your Experience — soft CTA for users who haven't completed onboarding */}
-        {mounted && !onboarded && (
-          <Link
-            href="/onboarding"
-            className="block bg-surface border border-theme rounded-2xl p-4 mb-4 hover:border-primary transition-colors"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <Sliders className="w-6 h-6 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-base font-bold text-theme-primary">Personalize Your Experience</h3>
-                <p className="text-xs text-theme-muted">Set your language, country and currency</p>
-              </div>
-              <div className="w-9 h-9 rounded-lg bg-elevated flex items-center justify-center flex-shrink-0">
-                <ArrowRight className="w-4 h-4 text-primary" />
-              </div>
-            </div>
-          </Link>
         )}
 
         {/* Business Verification Banner - Only for logged in users */}

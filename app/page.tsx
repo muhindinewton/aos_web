@@ -155,7 +155,7 @@ interface SlideData {
   Icon?: React.ElementType;
 }
 
-function BannerContent({ slide, tall }: { slide: SlideData; tall?: boolean }) {
+function BannerContent({ slide, tall, secondary }: { slide: SlideData; tall?: boolean; secondary?: boolean }) {
   const TitleTag = tall ? 'h2' : 'h3';
   const SlideIcon = slide.Icon;
 
@@ -180,45 +180,67 @@ function BannerContent({ slide, tall }: { slide: SlideData; tall?: boolean }) {
         )}
       </div>
 
-      {/* ── Desktop: centered glassmorphism card ── */}
-      <div className="hidden md:flex relative z-10 h-full w-full items-center justify-center px-4 py-4 md:px-10">
-        <div
-          className={`w-full text-center text-white backdrop-blur-md ${
-            tall
-              ? 'max-w-3xl rounded-[2rem] border border-white/15 bg-white/10 px-6 py-7 shadow-[0_24px_80px_rgba(15,23,42,0.28)] md:px-10 md:py-10'
-              : 'max-w-xl rounded-[1.75rem] border border-white/15 bg-black/10 px-4 py-4 shadow-[0_18px_50px_rgba(15,23,42,0.24)] md:px-7 md:py-6'
-          }`}
-        >
-          <span className={`inline-flex items-center rounded-full border border-white/20 bg-white/15 font-semibold uppercase tracking-[0.24em] text-white/95 ${
-            tall ? 'px-4 py-1.5 text-[10px] md:text-xs' : 'px-3 py-1 text-[9px] md:text-[10px]'
-          }`}>
-            {slide.badge || 'Featured'}
-          </span>
-          <TitleTag className={`mt-3 font-black leading-[0.95] tracking-tight text-white ${
-            tall ? 'text-3xl md:text-5xl' : 'text-xl md:text-2xl'
-          }`}>
-            {slide.title}
-          </TitleTag>
-          <p className={`mt-2 font-semibold text-white/95 ${tall ? 'text-base md:text-xl' : 'text-sm md:text-base'}`}>
-            {slide.subtitle}
-          </p>
-          <p className={`mx-auto mt-2 max-w-2xl text-pretty text-white/75 ${
-            tall ? 'text-sm md:text-base' : 'text-xs md:text-sm'
-          }`}>
-            {slide.description}
-          </p>
-          <Link href="/shop" className={`mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-white font-semibold text-slate-900 transition-all hover:-translate-y-0.5 hover:bg-slate-50 ${
-            tall ? 'px-6 py-3 text-sm md:px-7' : 'px-4 py-2 text-xs md:px-5 md:text-sm'
-          }`}>
-            Shop Now <ArrowRight className={tall ? 'h-4 w-4' : 'h-3.5 w-3.5'} />
-          </Link>
+      {/* ── Desktop SECONDARY: centered text, no glass card ── */}
+      {secondary ? (
+        <div className="hidden md:flex relative z-10 h-full w-full items-center justify-center px-8">
+          <div className="text-white text-center max-w-3xl" style={{ textShadow: '0 1px 12px rgba(0,0,0,0.18)' }}>
+            <span className="inline-flex items-center rounded-full bg-white/20 backdrop-blur-[2px] font-bold uppercase tracking-[0.18em] text-white px-3 py-1 text-[10px]">
+              {slide.badge || 'Featured'}
+            </span>
+            <h3 className="mt-3 font-black leading-[0.95] tracking-tight text-white text-2xl md:text-3xl">
+              {slide.title}
+            </h3>
+            <p className="mt-2 font-semibold text-white/95 text-sm md:text-base">{slide.subtitle}</p>
+            <p className="mt-1 text-white/80 text-xs md:text-sm">{slide.description}</p>
+            <Link
+              href="/shop"
+              className="mt-3 inline-flex items-center gap-2 rounded-full bg-white font-semibold text-slate-900 transition-all hover:-translate-y-0.5 hover:bg-slate-50 shadow-md px-5 py-2 text-xs md:text-sm"
+            >
+              Shop Now <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
         </div>
-      </div>
+      ) : (
+        /* ── Desktop HERO: centered glassmorphism card (unchanged) ── */
+        <div className="hidden md:flex relative z-10 h-full w-full items-center justify-center px-4 py-4 md:px-10">
+          <div
+            className={`w-full text-center text-white backdrop-blur-md ${
+              tall
+                ? 'max-w-3xl rounded-[2rem] border border-white/15 bg-white/10 px-6 py-7 shadow-[0_24px_80px_rgba(15,23,42,0.28)] md:px-10 md:py-10'
+                : 'max-w-xl rounded-[1.75rem] border border-white/15 bg-black/10 px-4 py-4 shadow-[0_18px_50px_rgba(15,23,42,0.24)] md:px-7 md:py-6'
+            }`}
+          >
+            <span className={`inline-flex items-center rounded-full border border-white/20 bg-white/15 font-semibold uppercase tracking-[0.24em] text-white/95 ${
+              tall ? 'px-4 py-1.5 text-[10px] md:text-xs' : 'px-3 py-1 text-[9px] md:text-[10px]'
+            }`}>
+              {slide.badge || 'Featured'}
+            </span>
+            <TitleTag className={`mt-3 font-black leading-[0.95] tracking-tight text-white ${
+              tall ? 'text-3xl md:text-5xl' : 'text-xl md:text-2xl'
+            }`}>
+              {slide.title}
+            </TitleTag>
+            <p className={`mt-2 font-semibold text-white/95 ${tall ? 'text-base md:text-xl' : 'text-sm md:text-base'}`}>
+              {slide.subtitle}
+            </p>
+            <p className={`mx-auto mt-2 max-w-2xl text-pretty text-white/75 ${
+              tall ? 'text-sm md:text-base' : 'text-xs md:text-sm'
+            }`}>
+              {slide.description}
+            </p>
+            <Link href="/shop" className={`mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-white font-semibold text-slate-900 transition-all hover:-translate-y-0.5 hover:bg-slate-50 ${
+              tall ? 'px-6 py-3 text-sm md:px-7' : 'px-4 py-2 text-xs md:px-5 md:text-sm'
+            }`}>
+              Shop Now <ArrowRight className={tall ? 'h-4 w-4' : 'h-3.5 w-3.5'} />
+            </Link>
+          </div>
+        </div>
+      )}
     </>
   );
 }
 
-function Slider({ slides, interval = 4000, tall, fill }: { slides: SlideData[]; interval?: number; tall?: boolean; fill?: boolean }) {
+function Slider({ slides, interval = 4000, tall, fill, secondary }: { slides: SlideData[]; interval?: number; tall?: boolean; fill?: boolean; secondary?: boolean }) {
   const [idx, setIdx] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const touchStart = useRef(0);
@@ -255,23 +277,39 @@ function Slider({ slides, interval = 4000, tall, fill }: { slides: SlideData[]; 
   return (
     <div className={fill ? 'relative h-full' : ''}>
       <div className={`relative ${fill ? 'h-full rounded-none' : tall ? 'h-[175px] md:h-72 lg:h-80 rounded-3xl' : 'h-40 md:h-48 rounded-3xl'} overflow-hidden shadow-elevated group`} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-        {/* Sliding track */}
-        <div
-          className="flex h-full transition-transform duration-500 ease-in-out"
-          style={{ transform: `translateX(-${idx * (100 / slides.length)}%)`, width: `${slides.length * 100}%` }}
-        >
-          {slides.map((s, i) => (
+        {secondary ? (
+          /* Cross-fade stack — secondary banner dissolves between slides */
+          slides.map((s, i) => (
             <div
               key={i}
-              className="relative h-full flex-shrink-0"
-              style={{ width: `${100 / slides.length}%`, background: s.bg }}
+              className="absolute inset-0 transition-opacity duration-700 ease-in-out"
+              style={{ background: s.bg, opacity: i === idx ? 1 : 0, pointerEvents: i === idx ? 'auto' : 'none' }}
+              aria-hidden={i !== idx}
             >
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.15),transparent_50%)]" />
               <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20" />
-              <BannerContent slide={s} tall={tall} />
+              <BannerContent slide={s} tall={tall} secondary={secondary} />
             </div>
-          ))}
-        </div>
+          ))
+        ) : (
+          /* Sliding track — used by hero banners */
+          <div
+            className="flex h-full transition-transform duration-500 ease-in-out"
+            style={{ transform: `translateX(-${idx * (100 / slides.length)}%)`, width: `${slides.length * 100}%` }}
+          >
+            {slides.map((s, i) => (
+              <div
+                key={i}
+                className="relative h-full flex-shrink-0"
+                style={{ width: `${100 / slides.length}%`, background: s.bg }}
+              >
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.15),transparent_50%)]" />
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20" />
+                <BannerContent slide={s} tall={tall} secondary={secondary} />
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Navigation arrows */}
         <button onClick={prev} className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/90 dark:bg-black/50 backdrop-blur-sm text-slate-800 dark:text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:scale-110 shadow-lg">
@@ -692,7 +730,7 @@ export default function HomePage() {
 
       {/* ===== SECONDARY BANNER SLIDER ===== */}
       <section className="mb-6">
-        <Slider slides={centeredSecondarySlides} interval={4000} />
+        <Slider slides={centeredSecondarySlides} interval={4000} secondary />
       </section>
 
       {/* ===== ELECTRONICS ===== */}
