@@ -13,7 +13,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState<'google' | 'apple' | null>(null);
-  const { login, loginWithGoogle, loginWithApple } = useAuth();
+  const { login, loginWithGoogle, loginWithApple, errorMessage } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -24,8 +24,8 @@ export default function LoginPage() {
     try {
       await login(email, password);
       router.push('/');
-    } catch {
-      setError('Invalid email or password');
+    } catch (err) {
+      setError(errorMessage(err));
     } finally {
       setIsLoading(false);
     }
@@ -37,8 +37,8 @@ export default function LoginPage() {
     try {
       await loginWithGoogle();
       router.push('/');
-    } catch {
-      setError('Google sign-in failed. Please try again.');
+    } catch (err) {
+      setError(errorMessage(err));
     } finally {
       setSocialLoading(null);
     }
@@ -50,8 +50,8 @@ export default function LoginPage() {
     try {
       await loginWithApple();
       router.push('/');
-    } catch {
-      setError('Apple sign-in failed. Please try again.');
+    } catch (err) {
+      setError(errorMessage(err));
     } finally {
       setSocialLoading(null);
     }

@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/mac/aos_app/lib/features/call/**)",
+      "Bash(curl -s -o /dev/null -w \"call/1: %{http_code}\\\\n\" http://localhost:3030/call/1)",
+      "Bash(curl -s -o /dev/null -w \"call/1?incoming=1: %{http_code}\\\\n\" \"http://localhost:3030/call/1?incoming=1\")",
+      "Bash(curl -s -o /dev/null -w \"chat/1: %{http_code}\\\\n\" http://localhost:3030/chat/1)",
+      "Bash(curl -s http://localhost:3030/call/1)",
+      "Bash(curl -s -o /dev/null -w \"calls: %{http_code}\\\\n\" http://localhost:3030/calls)",
+      "Bash(curl -s -o /dev/null -w \"calls/new: %{http_code}\\\\n\" http://localhost:3030/calls/new)",
+      "Bash(curl -s -o /dev/null -w \"contact \\(still works\\): %{http_code}\\\\n\" http://localhost:3030/contact)",
+      "Bash(curl -s http://localhost:3030/calls)",
+      "Bash(curl -s -o /dev/null -w \"product/1: %{http_code}\\\\n\" http://localhost:3030/product/1)",
+      "Bash(curl -s -o /dev/null -w \"reviews/1: %{http_code}\\\\n\" http://localhost:3030/reviews/1)",
+      "Bash(curl -s http://localhost:3030/reviews/1)",
+      "Read(//Users/mac/aos_app/lib/features/auth/**)",
+      "Read(//Users/mac/aos_app/lib/services/**)",
+      "Read(//Users/mac/aos_app/**)"
+    ],
+    "additionalDirectories": [
+      "/Users/mac/aos_web/app/call"
+    ]
+  }
+}

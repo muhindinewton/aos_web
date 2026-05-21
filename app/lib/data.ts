@@ -1,4 +1,4 @@
-import { Product, Category, Chat, FeedItem } from '../types';
+import { Product, Category, Chat, FeedItem, CallLog } from '../types';
 
 export const categories: Category[] = [
   { id: 'all', name: 'All', icon: 'Grid', subcategories: [] },
@@ -469,4 +469,15 @@ export const bannerSlides = [
     gradient: 'from-green-600 to-green-400',
     icon: 'TrendingUp',
   },
+];
+
+export const callLogs: CallLog[] = [
+  { id: '1', name: 'AutoMart Kenya',     avatar: 'A', type: 'incoming', time: '10:32 AM', duration: '5:23',  date: 'Today'       },
+  { id: '5', name: 'Jane Mwangi',        avatar: 'J', type: 'missed',   time: '9:45 AM',                     date: 'Today'       },
+  { id: '6', name: 'Peter Ochieng',      avatar: 'P', type: 'outgoing', time: '8:30 AM',  duration: '12:45', date: 'Today'       },
+  { id: '7', name: 'Mary Wanjiku',       avatar: 'M', type: 'missed',   time: '6:15 PM',                     date: 'Yesterday'   },
+  { id: '2', name: 'TechHub',            avatar: 'T', type: 'incoming', time: '3:20 PM',  duration: '8:12',  date: 'Yesterday'   },
+  { id: '4', name: 'Nairobi Electronics',avatar: 'N', type: 'outgoing', time: '11:00 AM', duration: '2:34',  date: 'Yesterday'   },
+  { id: '8', name: 'David Kimani',       avatar: 'D', type: 'missed',   time: '5:45 PM',                     date: 'Mon, Jan 27' },
+  { id: '3', name: 'Furniture Palace',   avatar: 'F', type: 'incoming', time: '2:10 PM',  duration: '3:21',  date: 'Mon, Jan 27' },
 ];

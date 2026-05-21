@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Mail, Lock, Eye, EyeOff, CheckCircle, AlertCircle } from 'lucide-react';
+import { useAuth } from '../../providers/auth-provider';
 
 type Step = 'email' | 'otp' | 'password' | 'success';
 
@@ -16,6 +17,7 @@ export default function ForgotPasswordPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const { sendPasswordReset, errorMessage } = useAuth();
 
   const handleOtpChange = (index: number, value: string) => {
     if (value.length > 1) return;
@@ -40,17 +42,24 @@ export default function ForgotPasswordPage() {
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    
+
     if (!email) {
       setError('Please enter your email address');
       return;
     }
 
     setIsLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setIsLoading(false);
-    setStep('otp');
+    try {
+      // Firebase handles the reset via an email link, not an OTP — so we
+      // skip the OTP/new-password steps and jump straight to the success
+      // state. The link in the email is what actually resets the password.
+      await sendPasswordReset(email);
+      setStep('success');
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleVerifyOtp = async (e: React.FormEvent) => {

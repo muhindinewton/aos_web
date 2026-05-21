@@ -4,6 +4,7 @@ import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Search, MessageCircle, Plus, X } from 'lucide-react';
 import { chats } from '../lib/data';
+import ChatCallsTabs from '../components/chat-calls-tabs';
 
 type Filter = 'All Chat' | 'Read' | 'Unread' | 'Unanswered';
 const FILTERS: Filter[] = ['All Chat', 'Read', 'Unread', 'Unanswered'];
@@ -31,10 +32,7 @@ export default function ChatListPage() {
 
   return (
     <div className="max-w-3xl mx-auto flex flex-col h-[calc(100dvh-152px)] md:h-[calc(100dvh-156px)] relative">
-      {/* ── Header ── */}
-      <div className="px-4 pt-4 pb-3 flex items-center gap-3 flex-shrink-0">
-        <h1 className="flex-1 text-xl font-semibold text-theme-primary">Messages</h1>
-      </div>
+      <ChatCallsTabs />
 
       {/* ── Search ── */}
       <div className="px-4 pb-3 flex-shrink-0">

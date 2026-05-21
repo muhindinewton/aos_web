@@ -50,6 +50,18 @@ export interface Chat {
   messages: ChatMessage[];
 }
 
+export type CallType = 'incoming' | 'outgoing' | 'missed';
+
+export interface CallLog {
+  id: string;
+  name: string;
+  avatar: string;
+  type: CallType;
+  time: string;
+  duration?: string;
+  date: string;
+}
+
 export interface FeedItem {
   id: string;
   type: 'short' | 'live';

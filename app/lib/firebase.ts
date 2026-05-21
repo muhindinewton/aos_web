@@ -9,8 +9,22 @@ import {
   updateProfile,
   signOut,
   onAuthStateChanged,
+  sendPasswordResetEmail,
+  sendEmailVerification,
+  deleteUser,
   type User,
 } from 'firebase/auth';
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc,
+  updateDoc,
+  deleteDoc,
+  serverTimestamp,
+  Timestamp,
+  type DocumentData,
+} from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyDWgcjex2-Tb6x_vE1X3hUIVsmUuVdecoM',
@@ -23,6 +37,7 @@ const firebaseConfig = {
 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
 const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
@@ -33,6 +48,7 @@ appleProvider.addScope('name');
 
 export {
   auth,
+  db,
   googleProvider,
   appleProvider,
   signInWithPopup,
@@ -41,5 +57,16 @@ export {
   updateProfile,
   signOut,
   onAuthStateChanged,
+  sendPasswordResetEmail,
+  sendEmailVerification,
+  deleteUser,
+  doc,
+  setDoc,
+  getDoc,
+  updateDoc,
+  deleteDoc,
+  serverTimestamp,
+  Timestamp,
   type User,
+  type DocumentData,
 };

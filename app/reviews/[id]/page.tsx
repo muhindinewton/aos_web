@@ -14,6 +14,8 @@ import {
   MessageSquarePlus,
   X,
 } from 'lucide-react';
+import { products } from '../../lib/data';
+import { useHasContactedSeller } from '../../lib/contacted-sellers';
 
 const reviews = [
   {
@@ -141,6 +143,11 @@ function RatingBar({ rating, count, total }: { rating: number; count: number; to
 
 export default function AllReviewsPage() {
   const params = useParams();
+  const productId = Array.isArray(params.id) ? params.id[0] : params.id;
+  const product = products.find(p => p.id === productId);
+  const sellerId = product?.seller?.id;
+  const canReview = useHasContactedSeller(sellerId);
+
   const [selectedTab, setSelectedTab] = useState<'all' | 'newest'>('all');
   const [selectedRating, setSelectedRating] = useState<number | null>(null);
   const [showFilterModal, setShowFilterModal] = useState(false);
@@ -323,21 +330,31 @@ export default function AllReviewsPage() {
         </div>
       </div>
 
-      {/* Fixed Bottom CTA */}
-      <div className="fixed bottom-0 left-0 right-0 bg-surface border-t border-theme p-4 md:hidden">
-        <button className="w-full bg-primary hover:bg-primary-hover text-white py-3.5 rounded-full font-semibold transition-colors flex items-center justify-center gap-2">
-          <MessageSquarePlus className="w-5 h-5" />
-          Write a Review
-        </button>
-      </div>
+      {/* Fixed Bottom CTA — gated on having contacted the seller */}
+      {canReview && (
+        <div className="fixed bottom-0 left-0 right-0 bg-surface border-t border-theme p-4 md:hidden">
+          <Link
+            href={`/reviews/${productId}/write`}
+            className="w-full bg-primary hover:bg-primary-hover text-white py-3.5 rounded-full font-semibold transition-colors flex items-center justify-center gap-2"
+          >
+            <MessageSquarePlus className="w-5 h-5" />
+            Write a Review
+          </Link>
+        </div>
+      )}
 
-      {/* Desktop Write Review Button */}
-      <div className="hidden md:block fixed bottom-8 right-8">
-        <button className="bg-primary hover:bg-primary-hover text-white px-6 py-3.5 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all flex items-center gap-2">
-          <MessageSquarePlus className="w-5 h-5" />
-          Write a Review
-        </button>
-      </div>
+      {/* Desktop Write Review Button — gated on having contacted the seller */}
+      {canReview && (
+        <div className="hidden md:block fixed bottom-8 right-8">
+          <Link
+            href={`/reviews/${productId}/write`}
+            className="bg-primary hover:bg-primary-hover text-white px-6 py-3.5 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
+          >
+            <MessageSquarePlus className="w-5 h-5" />
+            Write a Review
+          </Link>
+        </div>
+      )}
 
       {/* Filter Modal */}
       {showFilterModal && (

@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { products } from '../../lib/data';
 import { ProductCard } from '../../components/product-card';
+import { useHasContactedSeller } from '../../lib/contacted-sellers';
 
 const reviews = [
   {
@@ -84,6 +85,7 @@ export default function ProductDetailPage() {
     verified: false,
   };
   const reviewText = typeof product.reviews === 'string' ? product.reviews : String(product.reviews ?? '0');
+  const hasContactedSeller = useHasContactedSeller(seller.id);
 
   const [liked, setLiked] = useState(false);
   const [currentImage, setCurrentImage] = useState(0);
@@ -298,7 +300,7 @@ export default function ProductDetailPage() {
 
                 <div className="hidden gap-3 md:grid md:grid-cols-2">
                   <Link
-                    href={`/chat/${seller.id}?call=1`}
+                    href={`/call/${seller.id}`}
                     className="flex h-14 items-center justify-center gap-2 rounded-2xl border border-primary text-sm font-semibold text-primary transition-colors hover:bg-primary/5"
                   >
                     <Phone className="h-4 w-4" />
@@ -419,15 +421,21 @@ export default function ProductDetailPage() {
 
             <div className="rounded-[2rem] border border-theme bg-surface p-6 shadow-soft">
               <h2 className="text-xl font-bold text-theme-primary">Quick Actions</h2>
-              <p className="mt-1 text-sm text-theme-secondary">Leave feedback, flag issues, or create a similar listing.</p>
+              <p className="mt-1 text-sm text-theme-secondary">
+                {hasContactedSeller
+                  ? 'Leave feedback, flag issues, or create a similar listing.'
+                  : 'Flag issues with this listing, or contact the seller above to unlock reviews.'}
+              </p>
 
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                <Link
-                  href={`/reviews/${product.id}/write`}
-                  className="block text-center rounded-2xl border border-primary px-4 py-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/5"
-                >
-                  Review Product
-                </Link>
+              <div className={`mt-5 grid gap-3 ${hasContactedSeller ? 'sm:grid-cols-2' : ''}`}>
+                {hasContactedSeller && (
+                  <Link
+                    href={`/reviews/${product.id}/write`}
+                    className="block text-center rounded-2xl border border-primary px-4 py-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/5"
+                  >
+                    Review Product
+                  </Link>
+                )}
                 <Link
                   href={`/product/${product.id}/report`}
                   className="flex items-center justify-center gap-2 rounded-2xl border border-theme px-4 py-3 text-sm font-semibold text-red-500 transition-colors hover:bg-red-50 dark:hover:bg-red-500/5"

@@ -5,29 +5,39 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 import { useAuth } from '../../providers/auth-provider';
+import { useLocation } from '../../providers/location-provider';
 
 export default function SignupPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState<'google' | 'apple' | null>(null);
-  const { signup, loginWithGoogle, loginWithApple } = useAuth();
+  const { signup, loginWithGoogle, loginWithApple, errorMessage } = useAuth();
+  const { country } = useLocation();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    if (!name || !email || !password) { setError('Please fill in all fields'); return; }
+    if (!name || !email || !password || !confirmPassword) { setError('Please fill in all fields'); return; }
     if (password.length < 6) { setError('Password must be at least 6 characters'); return; }
+    if (password !== confirmPassword) { setError('Passwords do not match'); return; }
     setIsLoading(true);
     try {
-      await signup(email, password, name);
+      await signup({
+        email,
+        password,
+        name,
+        countryCode: country.code,
+        countryName: country.name,
+      });
       router.push('/');
-    } catch {
-      setError('Failed to create account. Email may already be in use.');
+    } catch (err) {
+      setError(errorMessage(err));
     } finally {
       setIsLoading(false);
     }
@@ -39,8 +49,8 @@ export default function SignupPage() {
     try {
       await loginWithGoogle();
       router.push('/');
-    } catch {
-      setError('Google sign-in failed. Please try again.');
+    } catch (err) {
+      setError(errorMessage(err));
     } finally {
       setSocialLoading(null);
     }
@@ -52,8 +62,8 @@ export default function SignupPage() {
     try {
       await loginWithApple();
       router.push('/');
-    } catch {
-      setError('Apple sign-in failed. Please try again.');
+    } catch (err) {
+      setError(errorMessage(err));
     } finally {
       setSocialLoading(null);
     }
@@ -117,6 +127,21 @@ export default function SignupPage() {
                 </button>
               </div>
               <p className="text-xs text-theme-muted mt-1.5">Must be at least 6 characters</p>
+            </div>
+
+            {/* Confirm Password Input */}
+            <div>
+              <label className="block text-sm font-medium text-theme-primary mb-1.5">Confirm Password</label>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-theme-muted" />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Re-enter your password"
+                  className="w-full bg-elevated border border-theme rounded-xl py-3.5 pl-12 pr-4 text-theme-primary placeholder:text-theme-muted outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
+                />
+              </div>
             </div>
 
             {/* Error */}

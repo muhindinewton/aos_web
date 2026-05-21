@@ -7,21 +7,10 @@ import {
   PhoneIncoming, PhoneOutgoing, PhoneMissed, PhoneCall,
   MicOff, Mic, Volume2, VolumeX, PhoneOff, Video, VideoOff,
 } from 'lucide-react';
+import { callLogs as CALL_LOGS } from '../lib/data';
+import type { CallLog, CallType } from '../types';
 
-type CallType = 'incoming' | 'outgoing' | 'missed';
-type CallLog = { id: string; name: string; avatar: string; type: CallType; time: string; duration?: string; date: string };
-type Message  = { id: string; name: string; avatar: string; lastMessage: string; time: string; unread: number };
-
-const CALL_LOGS: CallLog[] = [
-  { id: '1', name: 'TechHub Kenya',     avatar: 'T', type: 'incoming', time: '10:32 AM', duration: '5:23',  date: 'Today'       },
-  { id: '2', name: 'Jane Mwangi',       avatar: 'J', type: 'missed',   time: '9:45 AM',                     date: 'Today'       },
-  { id: '3', name: 'Peter Ochieng',     avatar: 'P', type: 'outgoing', time: '8:30 AM',  duration: '12:45', date: 'Today'       },
-  { id: '4', name: 'Mary Wanjiku',      avatar: 'M', type: 'missed',   time: '6:15 PM',                     date: 'Yesterday'   },
-  { id: '5', name: 'John Kamau',        avatar: 'J', type: 'incoming', time: '3:20 PM',  duration: '8:12',  date: 'Yesterday'   },
-  { id: '6', name: 'Electronics Plus',  avatar: 'E', type: 'outgoing', time: '11:00 AM', duration: '2:34',  date: 'Yesterday'   },
-  { id: '7', name: 'Sarah Njeri',       avatar: 'S', type: 'missed',   time: '5:45 PM',                     date: 'Mon, Jan 27' },
-  { id: '8', name: 'AutoMart Kenya',    avatar: 'A', type: 'incoming', time: '2:10 PM',  duration: '3:21',  date: 'Mon, Jan 27' },
-];
+type Message = { id: string; name: string; avatar: string; lastMessage: string; time: string; unread: number };
 
 const MESSAGES: Message[] = [
   { id: '1', name: 'TechHub Kenya',       avatar: 'T', lastMessage: 'Yes, the iPhone is still available. Whe…',   time: '10:32AM',   unread: 3 },
