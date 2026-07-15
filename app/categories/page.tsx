@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import type { LucideIcon } from 'lucide-react';
 import {
   Smartphone, Car, Home, Monitor, Sofa, Shirt, Sparkles, Wrench, Hammer,
@@ -188,8 +189,19 @@ const CAROUSEL_SLIDES = [
 ];
 
 export default function CategoriesPage() {
+  const router = useRouter();
   const [selectedIdx, setSelectedIdx] = useState(0);
   const [carouselIdx, setCarouselIdx] = useState(0);
+
+  // Phone-only screen: from tablet up, categories live in the home hero and
+  // the header search scope, so this page hands off to the shop instead.
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 768px)');
+    const redirect = () => { if (mq.matches) router.replace('/shop'); };
+    redirect();
+    mq.addEventListener('change', redirect);
+    return () => mq.removeEventListener('change', redirect);
+  }, [router]);
 
   useEffect(() => {
     const t = setInterval(() => setCarouselIdx(i => (i + 1) % CAROUSEL_SLIDES.length), 4000);

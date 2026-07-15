@@ -12,7 +12,9 @@ import { mkdirSync } from 'node:fs';
 import path from 'node:path';
 
 const BASE = process.argv[2] || 'http://localhost:3100';
-const OUT = path.resolve('screenshots');
+// THEME=dark captures the dark theme into screenshots/dark/…
+const THEME = process.env.THEME === 'dark' ? 'dark' : 'light';
+const OUT = THEME === 'dark' ? path.resolve('screenshots', 'dark') : path.resolve('screenshots');
 
 const CHROME =
   process.env.CHROME_PATH ||
@@ -137,16 +139,15 @@ async function main() {
   for (const [vpName, viewport] of Object.entries(VIEWPORTS)) {
     const page = await browser.newPage();
     await page.setViewport(viewport);
-    // Match the mobile reference shots: light theme, no OS dark preference.
-    await page.emulateMediaFeatures([{ name: 'prefers-color-scheme', value: 'light' }]);
+    await page.emulateMediaFeatures([{ name: 'prefers-color-scheme', value: THEME }]);
     // Skip the splash and unlock protected screens, like the mobile harness.
-    await page.evaluateOnNewDocument(() => {
+    await page.evaluateOnNewDocument(theme => {
       try {
         sessionStorage.setItem('aos_splash_seen', 'true');
         sessionStorage.setItem('aos-screenshot-mode', '1');
-        localStorage.setItem('aos-theme', 'light');
+        localStorage.setItem('aos-theme', theme);
       } catch {}
-    });
+    }, THEME);
 
     mkdirSync(path.join(OUT, vpName), { recursive: true });
     mkdirSync(path.join(OUT, vpName, 'full'), { recursive: true });

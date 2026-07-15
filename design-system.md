@@ -119,7 +119,34 @@ If chrome heights change, update **both** the header markup and this height form
 
 Horizontal rows (stories, chips, friends) scroll with `overflow-x-auto hide-scrollbar`.
 
-### 3.5 Navigation model
+### 3.5 Block dimensions (the recurring "frames")
+
+Exact sizes of the repeating blocks. Anything not listed here: the component's
+Tailwind classes are the redline — inspect the element in DevTools or read the
+component file.
+
+| Block | Size |
+|---|---|
+| Product card image | fluid width in its grid column, `aspect-[4/3]`, `rounded-xl` |
+| Product card (whole) | grid cell of `grid-cols-2 md:3 lg:4` with `gap-3 md:gap-4`; `p-2.5` padding |
+| Wishlist card image | `h-[150px]` grid view · `w-24 h-24` list thumb |
+| Listing row thumb | `w-24 h-24` (sm: `w-32 h-32`) |
+| Home hero banner | `h-[175px]` mobile → `md:h-72` → `lg:h-80`; desktop split banner `h-[360px]` |
+| Quick-action icon box | `68×68`, `rounded-2xl` |
+| Shorts rail tile (home) | `130×200`, `rounded-2xl` |
+| Feed discovery tile | fluid width, `aspect-[3/4]` |
+| Live rail card (feed) | `w-[130px]` |
+| Profile video tile | grid cell, `aspect-[9/16]`, `gap-[2px]` |
+| Categories sidebar | `w-[88px]`; subcategory tiles `aspect-square` in `grid-cols-3` |
+| Story avatar | `68×68` ring outer (64 inner) |
+| Chat bubble | `max-w-[78%]` of the thread column |
+| Connect search bar | `h-[54px]`; chat-detail inputs `~44px` (`py-2.5`) |
+| Connect bottom bar / FAB | bar `h-[60px]` pill · FAB `54×54`, overlaps bar by half |
+| Shop-location map preview | `h-[150px]` card embed; full map page fills remaining viewport |
+| Empty/error emblem | `88×88` circle, icon `40px` |
+| Buttons / inputs | `~44px` tall (`py-2.5–3.5`); hero CTA `py-4` |
+
+### 3.6 Navigation model
 
 - **Mobile bottom tabs:** Home `/` · Feed `/feed` · **Post** (center 40px red circle, `/sell`) · Connect `/chat` · Account `/account`.
 - **Desktop nav row:** location picker (left) · Home / Shop / Shorts / Wishlist / Connect (centered) · Buyer Protection (right).
