@@ -84,7 +84,7 @@ const STATE_PARAMS = { loading: '__state=loading', error: '__state=error', empty
 const withParam = (p, q) => (p.includes('?') ? `${p}&${q}` : `${p}?${q}`);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-async function capture(page, url, file, settleMs) {
+async function capture(page, url, file, settleMs, fullFile = null) {
   try {
     await page.goto(url, { waitUntil: 'networkidle2', timeout: 25000 });
   } catch {
@@ -99,6 +99,27 @@ async function capture(page, url, file, settleMs) {
   await sleep(settleMs);
   await page.screenshot({ path: file });
   process.stdout.write(`  ✓ ${path.relative(OUT, file)}\n`);
+
+  // Long pages: also capture the entire scroll height, stitched.
+  if (!fullFile) return;
+  const { scrollH, viewH } = await page.evaluate(() => ({
+    scrollH: document.documentElement.scrollHeight,
+    viewH: window.innerHeight,
+  }));
+  if (scrollH <= viewH + 60) return; // fits in one screen — viewport shot is the full page
+
+  // Walk the page once so lazy images/content below the fold load first.
+  await page.evaluate(async () => {
+    const step = window.innerHeight;
+    for (let y = 0; y < document.documentElement.scrollHeight; y += step) {
+      window.scrollTo(0, y);
+      await new Promise(r => setTimeout(r, 120));
+    }
+    window.scrollTo(0, 0);
+  });
+  await sleep(400);
+  await page.screenshot({ path: fullFile, fullPage: true });
+  process.stdout.write(`  ✓ ${path.relative(OUT, fullFile)} (full page)\n`);
 }
 
 async function main() {
@@ -128,6 +149,7 @@ async function main() {
     });
 
     mkdirSync(path.join(OUT, vpName), { recursive: true });
+    mkdirSync(path.join(OUT, vpName, 'full'), { recursive: true });
     for (const s of Object.keys(STATE_PARAMS)) {
       mkdirSync(path.join(OUT, vpName, s), { recursive: true });
     }
@@ -135,7 +157,14 @@ async function main() {
     console.log(`\n── ${vpName} (${viewport.width}×${viewport.height}) ──`);
     for (const route of ROUTES) {
       // Content state — give usePageLoad's 700ms fetch time to settle.
-      await capture(page, BASE + route.path, path.join(OUT, vpName, `${route.slug}.png`), 1400);
+      // Pages taller than the viewport also get a stitched full-page shot.
+      await capture(
+        page,
+        BASE + route.path,
+        path.join(OUT, vpName, `${route.slug}.png`),
+        1400,
+        path.join(OUT, vpName, 'full', `${route.slug}.png`),
+      );
 
       if (!route.stateful) continue;
       for (const [state, param] of Object.entries(STATE_PARAMS)) {
