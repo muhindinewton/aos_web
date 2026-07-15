@@ -59,7 +59,9 @@ page states, light and dark, plus full-page captures of long pages and a browsab
 gallery:
 
 ```bash
-npm run build && npx next start -p 3100 &   # harness expects port 3100
+# Isolated build dir so a running `next dev` can't invalidate the server mid-run
+NEXT_DIST_DIR=.next-shots npx next build
+NEXT_DIST_DIR=.next-shots npx next start -p 3100 &   # harness expects port 3100
 node scripts/screenshots.mjs                # light theme
 THEME=dark node scripts/screenshots.mjs     # dark theme → screenshots/dark/
 node scripts/gallery.mjs                    # builds screenshots/index.html

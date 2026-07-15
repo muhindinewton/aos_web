@@ -21,6 +21,7 @@ import {
   Circle,
   Lightbulb,
   Briefcase,
+  UserCheck,
   X,
 } from 'lucide-react';
 
@@ -37,12 +38,17 @@ const steps = [
   { title: 'Review', subtitle: 'Submit for verification', icon: BadgeCheck },
 ];
 
+type VerifyMode = 'choose' | 'personal' | 'business';
+
 function BusinessVerificationPage() {
   const router = useRouter();
+  // Like mobile: first pick Personal or Business, then run that flow.
+  const [mode, setMode] = useState<VerifyMode>('choose');
+  const [typeChoice, setTypeChoice] = useState<'personal' | 'business' | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  // Form state
+  // Business form state
   const [businessName, setBusinessName] = useState('');
   const [businessType, setBusinessType] = useState('Sole Proprietorship');
   const [selling, setSelling] = useState('');
@@ -50,8 +56,16 @@ function BusinessVerificationPage() {
   const [location, setLocation] = useState('');
   const [documentUploaded, setDocumentUploaded] = useState(false);
 
+  // Personal form state
+  const [fullName, setFullName] = useState('');
+  const [idNumber, setIdNumber] = useState('');
+  const [personalPhone, setPersonalPhone] = useState('');
+  const [idUploaded, setIdUploaded] = useState(false);
+
   // Error state
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const personalValid = () => fullName.trim() && idNumber.trim() && personalPhone.trim() && idUploaded;
 
   const validateStep = () => {
     const newErrors: Record<string, string> = {};
@@ -100,19 +114,21 @@ function BusinessVerificationPage() {
         <div className="sticky top-0 z-10 bg-theme border-b border-theme">
           <div className="max-w-2xl mx-auto px-4 py-4 flex items-center gap-3">
             <button
-              onClick={() => router.back()}
+              onClick={() => (mode === 'choose' ? router.back() : setMode('choose'))}
               className="w-10 h-10 rounded-xl bg-surface border border-theme flex items-center justify-center text-theme-primary hover:bg-elevated transition-colors"
+              aria-label="Back"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <h1 className="flex-1 text-center text-lg font-semibold text-theme-primary">
-              Business Verification
+              {mode === 'business' ? 'Business Verification' : mode === 'personal' ? 'Personal Verification' : 'Get Verified'}
             </h1>
             <div className="w-10" />
           </div>
         </div>
 
-        {/* Progress Indicator */}
+        {/* Progress Indicator (business flow only) */}
+        {mode === 'business' && (
         <div className="max-w-2xl mx-auto px-4 py-4">
           <div className="flex items-center justify-center gap-2">
             {steps.map((step, index) => {
@@ -143,10 +159,122 @@ function BusinessVerificationPage() {
             })}
           </div>
         </div>
+        )}
 
         {/* Step Content */}
-        <div className="max-w-2xl mx-auto px-4 pb-32">
-          {currentStep === 0 && (
+        <div className="max-w-2xl mx-auto px-4 pb-44 lg:pb-32">
+          {/* ── Choose verification type ── */}
+          {mode === 'choose' && (
+            <div className="pt-2 space-y-4">
+              <p className="text-sm text-theme-secondary">
+                Choose how you want to verify your account. Verified accounts get a badge and rank higher in search.
+              </p>
+              {([
+                {
+                  key: 'personal' as const,
+                  icon: UserCheck,
+                  title: 'Personal verification',
+                  desc: 'Verify your identity with your national ID or passport. Best for individual sellers.',
+                },
+                {
+                  key: 'business' as const,
+                  icon: Briefcase,
+                  title: 'Business verification',
+                  desc: 'Verify your registered business with its certificate. Unlocks the storefront badge.',
+                },
+              ]).map(({ key, icon: Icon, title, desc }) => {
+                const active = typeChoice === key;
+                return (
+                  <button
+                    key={key}
+                    onClick={() => setTypeChoice(key)}
+                    className={`w-full flex items-start gap-4 p-5 rounded-2xl border text-left transition-colors ${
+                      active ? 'border-primary bg-primary/5' : 'border-theme bg-surface hover:bg-elevated'
+                    }`}
+                  >
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${active ? 'bg-primary/10' : 'bg-elevated'}`}>
+                      <Icon className={`w-6 h-6 ${active ? 'text-primary' : 'text-theme-secondary'}`} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-base font-semibold ${active ? 'text-primary' : 'text-theme-primary'}`}>{title}</p>
+                      <p className="text-sm text-theme-secondary mt-1 leading-relaxed">{desc}</p>
+                    </div>
+                    <span className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-1 ${active ? 'border-primary bg-primary' : 'border-theme'}`}>
+                      {active && <Check className="w-3.5 h-3.5 text-white" />}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* ── Personal flow ── */}
+          {mode === 'personal' && (
+            <div className="pt-2 space-y-5">
+              <p className="text-sm text-theme-secondary">
+                Enter your details exactly as they appear on your ID document.
+              </p>
+              <div>
+                <label className="block text-sm font-medium text-theme-primary mb-1.5">Full legal name</label>
+                <input
+                  type="text"
+                  value={fullName}
+                  onChange={e => setFullName(e.target.value)}
+                  placeholder="e.g. Newton Muhindi"
+                  className="w-full bg-surface border border-theme rounded-xl py-3 px-4 text-sm text-theme-primary placeholder:text-theme-muted outline-none focus:border-primary"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-theme-primary mb-1.5">National ID / Passport number</label>
+                <input
+                  type="text"
+                  value={idNumber}
+                  onChange={e => setIdNumber(e.target.value)}
+                  placeholder="e.g. 12345678"
+                  className="w-full bg-surface border border-theme rounded-xl py-3 px-4 text-sm text-theme-primary placeholder:text-theme-muted outline-none focus:border-primary"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-theme-primary mb-1.5">Phone number</label>
+                <input
+                  type="tel"
+                  value={personalPhone}
+                  onChange={e => setPersonalPhone(e.target.value)}
+                  placeholder="+254 700 000 000"
+                  className="w-full bg-surface border border-theme rounded-xl py-3 px-4 text-sm text-theme-primary placeholder:text-theme-muted outline-none focus:border-primary"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-theme-primary mb-1.5">ID document photo</label>
+                <button
+                  onClick={() => setIdUploaded(v => !v)}
+                  className={`w-full flex flex-col items-center gap-2 py-8 rounded-2xl border-2 border-dashed transition-colors ${
+                    idUploaded ? 'border-emerald-500 bg-emerald-500/5' : 'border-theme hover:border-primary/40'
+                  }`}
+                >
+                  {idUploaded ? (
+                    <>
+                      <span className="w-11 h-11 rounded-full bg-emerald-500/15 flex items-center justify-center">
+                        <Check className="w-5 h-5 text-emerald-500" />
+                      </span>
+                      <span className="text-sm font-semibold text-emerald-600">id-document.jpg attached</span>
+                      <span className="text-xs text-theme-muted">Tap to remove</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Upload className="w-5 h-5 text-primary" />
+                      </span>
+                      <span className="text-sm font-semibold text-theme-primary">Upload a clear photo of your ID</span>
+                      <span className="text-xs text-theme-muted">Front side · JPG or PNG · max 10MB</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {mode === 'business' && currentStep === 0 && (
             <BusinessInfoStep
               businessName={businessName}
               setBusinessName={setBusinessName}
@@ -162,7 +290,7 @@ function BusinessVerificationPage() {
               setErrors={setErrors}
             />
           )}
-          {currentStep === 1 && (
+          {mode === 'business' && currentStep === 1 && (
             <DocumentsStep
               businessType={businessType}
               documentUploaded={documentUploaded}
@@ -171,7 +299,7 @@ function BusinessVerificationPage() {
               setErrors={setErrors}
             />
           )}
-          {currentStep === 2 && (
+          {mode === 'business' && currentStep === 2 && (
             <ReviewStep
               businessName={businessName}
               businessType={businessType}
@@ -183,10 +311,10 @@ function BusinessVerificationPage() {
           )}
         </div>
 
-        {/* Bottom Buttons */}
-        <div className="fixed bottom-0 left-0 right-0 bg-surface border-t border-theme p-4">
+        {/* Bottom Buttons — sits above the mobile tab bar, flush on desktop */}
+        <div className="fixed bottom-16 lg:bottom-0 left-0 right-0 z-40 bg-surface border-t border-theme p-4">
           <div className="max-w-2xl mx-auto flex gap-3">
-            {currentStep > 0 && (
+            {mode === 'business' && currentStep > 0 && (
               <button
                 onClick={handleBack}
                 className="flex-1 py-3.5 rounded-full border border-theme text-theme-primary font-semibold hover:bg-elevated transition-colors"
@@ -194,17 +322,45 @@ function BusinessVerificationPage() {
                 Back
               </button>
             )}
-            <button
-              onClick={handleNext}
-              disabled={!isStepValid()}
-              className={`flex-1 py-3.5 rounded-full font-semibold transition-colors ${
-                isStepValid()
-                  ? 'bg-primary text-white hover:bg-primary-hover'
-                  : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-              }`}
-            >
-              {currentStep === steps.length - 1 ? 'Submit for Verification' : 'Continue'}
-            </button>
+            {mode === 'choose' && (
+              <button
+                onClick={() => typeChoice && setMode(typeChoice)}
+                disabled={!typeChoice}
+                className={`flex-1 py-3.5 rounded-full font-semibold transition-colors ${
+                  typeChoice
+                    ? 'bg-primary text-white hover:bg-primary-hover'
+                    : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                }`}
+              >
+                Continue
+              </button>
+            )}
+            {mode === 'personal' && (
+              <button
+                onClick={() => personalValid() && setShowSuccessModal(true)}
+                disabled={!personalValid()}
+                className={`flex-1 py-3.5 rounded-full font-semibold transition-colors ${
+                  personalValid()
+                    ? 'bg-primary text-white hover:bg-primary-hover'
+                    : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                }`}
+              >
+                Submit for Verification
+              </button>
+            )}
+            {mode === 'business' && (
+              <button
+                onClick={handleNext}
+                disabled={!isStepValid()}
+                className={`flex-1 py-3.5 rounded-full font-semibold transition-colors ${
+                  isStepValid()
+                    ? 'bg-primary text-white hover:bg-primary-hover'
+                    : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                }`}
+              >
+                {currentStep === steps.length - 1 ? 'Submit for Verification' : 'Continue'}
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -215,12 +371,14 @@ function BusinessVerificationPage() {
           <div className="absolute inset-0 bg-black/50" />
           <div className="relative bg-surface rounded-3xl w-full max-w-sm p-6 text-center animate-slide-up">
             <div className="w-20 h-20 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto mb-5">
-              <Briefcase className="w-10 h-10 text-emerald-500" />
+              {mode === 'personal'
+                ? <UserCheck className="w-10 h-10 text-emerald-500" />
+                : <Briefcase className="w-10 h-10 text-emerald-500" />}
             </div>
             <h2 className="text-xl font-bold text-theme-primary mb-3">Application Submitted!</h2>
             <p className="text-sm text-theme-muted mb-6 leading-relaxed">
-              Your business verification is under review. We'll notify you within 2-5 business
-              days.
+              Your {mode === 'personal' ? 'identity' : 'business'} verification is under review.
+              We&apos;ll notify you within 2-5 business days.
             </p>
             <button
               onClick={() => router.push('/account')}

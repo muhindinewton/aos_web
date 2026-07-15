@@ -41,6 +41,10 @@ import { useLocation, flagEmoji } from '../providers/location-provider';
 import { usePreferences } from '../providers/preferences-provider';
 import { LocationPickerModal } from './location-picker-modal';
 
+// The AOS Connect screen (all three aliases) is full-bleed on mobile — it has
+// its own floating Chats/Calls bar, so the global tab bar hides there.
+export const CONNECT_ROUTES = ['/chat', '/calls', '/contact'];
+
 export function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
@@ -341,7 +345,9 @@ export function Navbar() {
         </div>
       </header>
 
-      {/* Mobile Bottom Nav */}
+      {/* Mobile Bottom Nav — hidden on the Connect screen, which brings its
+          own floating Chats/Calls bar */}
+      {!CONNECT_ROUTES.includes(pathname) && (
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-surface border-t border-theme z-50 shadow-nav">
         <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-2">
           {[
@@ -385,6 +391,7 @@ export function Navbar() {
           })}
         </div>
       </nav>
+      )}
       {showLocationPicker && <LocationPickerModal onClose={() => setShowLocationPicker(false)} />}
     </>
   );

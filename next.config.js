@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // The screenshot harness builds into its own dist dir so a concurrently
+  // running `next dev` (which rewrites .next) can't invalidate its server.
+  distDir: process.env.NEXT_DIST_DIR || '.next',
   images: {
     remotePatterns: [
       {

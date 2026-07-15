@@ -9,6 +9,7 @@ import { Navbar } from './components/bottom-nav';
 import { Footer } from './components/footer';
 import { AppWrapper } from './components/app-wrapper';
 import { OfflineBanner } from './components/offline-banner';
+import { PageShell } from './components/page-shell';
 
 export const metadata: Metadata = {
   title: 'AOS - Africa Online Space',
@@ -36,7 +37,7 @@ export default function RootLayout({
               <AppWrapper>
                 <OfflineBanner />
                 <Navbar />
-                <main className="pb-20 lg:pb-0">{children}</main>
+                <PageShell>{children}</PageShell>
                 <div className="hidden lg:block"><Footer /></div>
               </AppWrapper>
             </ToastProvider>

@@ -379,7 +379,7 @@ export default function ContactPage() {
   const groupOrder = ['Today', 'Yesterday', 'Mon, Jan 27'];
 
   return (
-    <div className="max-w-3xl mx-auto flex flex-col h-[calc(100dvh-80px)] lg:h-[calc(100dvh-112px)] relative">
+    <div className="max-w-3xl mx-auto flex flex-col h-[100dvh] lg:h-[calc(100dvh-112px)] relative">
 
       {/* ── Header: close · AOS Connect · menu ── */}
       <div className="px-5 pt-4 pb-1.5 flex-shrink-0">

@@ -86,6 +86,10 @@ const STATE_PARAMS = { loading: '__state=loading', error: '__state=error', empty
 const withParam = (p, q) => (p.includes('?') ? `${p}&${q}` : `${p}?${q}`);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
+// Pages that leak horizontal overflow (clipped by the global overflow-x:
+// hidden, so invisible in stills) are collected here and fail the run.
+const overflows = [];
+
 async function capture(page, url, file, settleMs, fullFile = null) {
   try {
     await page.goto(url, { waitUntil: 'networkidle2', timeout: 25000 });
@@ -99,6 +103,16 @@ async function capture(page, url, file, settleMs, fullFile = null) {
     });
   } catch { /* navigation raced the style tag — the shot is still fine */ }
   await sleep(settleMs);
+
+  // Layout assertion: no page may be wider than the viewport.
+  const overflowPx = await page.evaluate(
+    () => document.documentElement.scrollWidth - window.innerWidth,
+  );
+  if (overflowPx > 1) {
+    overflows.push({ shot: path.relative(OUT, file), overflowPx });
+    process.stdout.write(`  ⚠ OVERFLOW +${overflowPx}px ${path.relative(OUT, file)}\n`);
+  }
+
   await page.screenshot({ path: file });
   process.stdout.write(`  ✓ ${path.relative(OUT, file)}\n`);
 
@@ -125,6 +139,14 @@ async function capture(page, url, file, settleMs, fullFile = null) {
 }
 
 async function main() {
+  // Abort loudly if the app server isn't serving — otherwise every capture
+  // is a byte-identical Chrome error page and the run looks "successful".
+  const health = await fetch(BASE).catch(() => null);
+  if (!health || !health.ok) {
+    console.error(`✗ Server not reachable at ${BASE} (status ${health?.status ?? 'none'}). Start it with: npx next start -p 3100`);
+    process.exit(2);
+  }
+
   const browser = await puppeteer.launch({
     executablePath: CHROME,
     headless: 'new',
@@ -137,6 +159,13 @@ async function main() {
   });
 
   for (const [vpName, viewport] of Object.entries(VIEWPORTS)) {
+    // The server can die mid-run (long captures); recheck before each pass.
+    const alive = await fetch(BASE).catch(() => null);
+    if (!alive || !alive.ok) {
+      console.error(`✗ Server stopped responding before the ${vpName} pass — aborting.`);
+      process.exit(2);
+    }
+
     const page = await browser.newPage();
     await page.setViewport(viewport);
     await page.emulateMediaFeatures([{ name: 'prefers-color-scheme', value: THEME }]);
@@ -181,6 +210,13 @@ async function main() {
   }
 
   await browser.close();
+
+  if (overflows.length) {
+    console.error(`\n✗ ${overflows.length} capture(s) have horizontal overflow (page wider than viewport):`);
+    for (const o of overflows) console.error(`   +${o.overflowPx}px  ${o.shot}`);
+    console.error('  Usual culprit: a grid/flex child missing min-w-0, or a fixed-width block.');
+    process.exitCode = 1;
+  }
   console.log(`\nDone → ${OUT}`);
 }
 

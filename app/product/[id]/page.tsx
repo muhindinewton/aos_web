@@ -139,8 +139,8 @@ export default function ProductDetailPage() {
           Back to Shop
         </Link>
 
-        <section className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(360px,0.8fr)] lg:items-start">
-          <div className="space-y-4">
+        <section className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(360px,0.8fr)] lg:items-start">
+          <div className="min-w-0 space-y-4">
             <div
               className="group relative overflow-hidden rounded-[2rem] border border-theme bg-surface shadow-soft"
               onTouchStart={(event) => {
@@ -254,7 +254,7 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
-          <div className="space-y-4 lg:sticky lg:top-24">
+          <div className="min-w-0 space-y-4 lg:sticky lg:top-24">
             <div className="overflow-hidden rounded-[2rem] border border-theme bg-surface shadow-soft">
               <div className="border-b border-theme bg-[linear-gradient(135deg,rgba(193,18,31,0.08),rgba(193,18,31,0),rgba(193,18,31,0.04))] p-6">
                 <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -348,11 +348,11 @@ export default function ProductDetailPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3 p-6">
+              <div className="grid grid-cols-3 gap-2 p-6 sm:gap-3">
                 {sellerStats.map((stat) => (
-                  <div key={stat.label} className="rounded-2xl bg-elevated px-3 py-4 text-center">
+                  <div key={stat.label} className="min-w-0 rounded-2xl bg-elevated px-2 py-4 text-center sm:px-3">
                     <stat.icon className="mx-auto h-4 w-4 text-theme-muted" />
-                    <p className="mt-2 text-[11px] uppercase tracking-[0.18em] text-theme-muted">{stat.label}</p>
+                    <p className="mt-2 break-words text-[11px] uppercase tracking-[0.12em] text-theme-muted">{stat.label}</p>
                     <p className="mt-1 text-sm font-semibold text-theme-primary">{stat.value}</p>
                   </div>
                 ))}
@@ -400,8 +400,8 @@ export default function ProductDetailPage() {
           </div>
         </section>
 
-        <section className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
-          <div className="rounded-[2rem] border border-theme bg-surface p-6 shadow-soft">
+        <section className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
+          <div className="min-w-0 rounded-[2rem] border border-theme bg-surface p-6 shadow-soft">
             <div className="mb-5 flex items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                 <Package className="h-5 w-5" />
