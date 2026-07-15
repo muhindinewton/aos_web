@@ -8,7 +8,7 @@ export function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           {/* About */}
           <div className="col-span-2 md:col-span-1">
-            <h3 className="text-lg font-bold text-primary mb-3">Africa Online Stores</h3>
+            <h3 className="text-lg font-bold text-primary mb-3">Africa Online Space</h3>
             <p className="text-sm text-theme-muted leading-relaxed">
               Buy and sell anything across Africa. The largest marketplace for new and used items.
             </p>
@@ -74,7 +74,7 @@ export function Footer() {
         </div>
 
         <div className="border-t border-theme mt-8 pt-6 flex flex-col md:flex-row items-center justify-between gap-3">
-          <p className="text-xs text-theme-muted">&copy; {new Date().getFullYear()} Africa Online Stores. All rights reserved.</p>
+          <p className="text-xs text-theme-muted">&copy; {new Date().getFullYear()} Africa Online Space. All rights reserved.</p>
           <div className="flex items-center gap-4">
             <Link href="/help" className="text-xs text-theme-muted hover:text-primary">Terms</Link>
             <Link href="/help" className="text-xs text-theme-muted hover:text-primary">Privacy</Link>

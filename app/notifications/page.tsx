@@ -20,6 +20,7 @@ import {
   RotateCw,
   ArrowRight,
 } from 'lucide-react';
+import { usePageLoad, SkeletonList, AppErrorView } from '../components/app-state-views';
 
 type NotificationType = 'message' | 'listing' | 'price_drop' | 'promotion' | 'live_stream' | 'short_video' | 'follower' | 'order' | 'system';
 
@@ -244,13 +245,14 @@ export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
   const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const { loading, error, retry, forceEmpty } = usePageLoad();
 
   const showToast = (msg: string) => {
     setToast(msg);
     setTimeout(() => setToast(null), 2200);
   };
 
-  const filteredNotifications = notifications.filter(n => {
+  const filteredNotifications = (forceEmpty ? [] : notifications).filter(n => {
     switch (selectedTab) {
       case 1: return n.type === 'message';
       case 2: return ['listing', 'price_drop', 'follower', 'order', 'live_stream', 'short_video'].includes(n.type);
@@ -346,7 +348,11 @@ export default function NotificationsPage() {
         </div>
 
         {/* Notifications List */}
-        {filteredNotifications.length === 0 ? (
+        {loading ? (
+          <SkeletonList rows={6} />
+        ) : error ? (
+          <AppErrorView onRetry={retry} />
+        ) : filteredNotifications.length === 0 ? (
           <div className="text-center py-16">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-elevated flex items-center justify-center">
               <MessageCircle className="w-8 h-8 text-theme-muted" />
@@ -398,22 +404,26 @@ export default function NotificationsPage() {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-start justify-between gap-2">
                                 <h4 className="font-semibold text-theme-primary text-sm">{notification.title}</h4>
-                                <span className="text-xs text-theme-muted whitespace-nowrap">{formatTime(notification.createdAt)}</span>
+                                <span className="flex items-center gap-1.5 whitespace-nowrap">
+                                  <span className="text-xs text-theme-muted">{formatTime(notification.createdAt)}</span>
+                                  {!notification.isRead && <span className="w-2 h-2 rounded-full bg-primary" />}
+                                </span>
                               </div>
                               <p className="text-sm text-theme-secondary mt-1 line-clamp-2">{notification.body}</p>
                               {showInlineChip && action && (
                                 <button
                                   onClick={(e) => { e.stopPropagation(); markAsRead(notification.id); router.push(action.href); }}
-                                  className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary text-white text-xs font-semibold rounded-full hover:bg-primary-hover transition-colors"
+                                  className={`mt-2 inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+                                    notification.type === 'price_drop'
+                                      ? 'bg-green-500/10 text-green-600 hover:bg-green-500/20'
+                                      : 'bg-primary text-white hover:bg-primary-hover'
+                                  }`}
                                 >
                                   {ActionIcon && <ActionIcon className="w-3.5 h-3.5" />}
                                   {action.label}
                                 </button>
                               )}
                             </div>
-                            {!notification.isRead && (
-                              <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-2" />
-                            )}
                           </div>
                         </div>
                       );

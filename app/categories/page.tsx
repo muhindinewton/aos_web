@@ -203,7 +203,7 @@ export default function CategoriesPage() {
   const displayProducts = forYouProducts.length > 0 ? forYouProducts : products.slice(0, 6);
 
   return (
-    <div className="flex h-[calc(100dvh-152px)] md:h-[calc(100dvh-156px)] overflow-hidden bg-surface">
+    <div className="flex h-[calc(100dvh-80px)] lg:h-[calc(100dvh-112px)] overflow-hidden bg-surface">
 
       {/* ── Left Sidebar ── */}
       <div className="w-[88px] flex-shrink-0 overflow-y-auto border-r border-theme hide-scrollbar bg-surface">
@@ -275,7 +275,7 @@ export default function CategoriesPage() {
 
         {/* Subcategory 3-col image grid */}
         <div className="px-2 pb-3">
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
             {cat.subcategories.map(sub => {
               const seed = sub.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
               return (

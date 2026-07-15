@@ -20,7 +20,7 @@ import {
   SAVED_IDS_DEFAULT,
   SEED_FEED,
   fmt,
-} from '../feed-data';
+} from '../../feed/feed-data';
 
 type Tab = 'posts' | 'saved' | 'liked';
 
@@ -30,7 +30,7 @@ export default function FeedProfilePage() {
   const [tab, setTab] = useState<Tab>('posts');
   const [editing, setEditing] = useState(false);
   const [displayName, setDisplayName] = useState<string>('');
-  const [bio, setBio] = useState<string>('Content creator on AOS Africa');
+  const [bio, setBio] = useState<string>('Shopaholic & deal hunter 🛍️\nSharing the best finds on AOS Africa 🌍');
 
   const name = displayName || user?.displayName || 'My Account';
   const username = '@' + (user?.email?.split('@')[0]?.toLowerCase() || 'you');
@@ -109,12 +109,12 @@ export default function FeedProfilePage() {
           </div>
 
           {/* Bio */}
-          <p className="text-theme-secondary text-sm text-center mt-3 leading-relaxed">{bio}</p>
+          <p className="text-theme-secondary text-sm text-center mt-3 leading-relaxed whitespace-pre-line">{bio}</p>
 
           {/* Edit profile button */}
           <button
             onClick={() => setEditing(true)}
-            className="mt-4 w-full max-w-[300px] py-2.5 rounded-lg border border-theme text-theme-primary text-sm font-semibold"
+            className="mt-4 w-full max-w-[340px] py-3 rounded-xl border border-theme text-theme-primary text-[15px] font-semibold hover:bg-elevated transition-colors"
           >
             Edit profile
           </button>
@@ -131,8 +131,8 @@ export default function FeedProfilePage() {
               <button
                 key={key}
                 onClick={() => setTab(key)}
-                className={`flex-1 py-3 flex items-center justify-center gap-2 border-b-[2.5px] transition-colors ${
-                  tab === key ? 'border-primary text-primary' : 'border-transparent text-theme-muted'
+                className={`flex-1 py-3 flex flex-col items-center justify-center gap-1 transition-colors ${
+                  tab === key ? 'text-primary' : 'text-theme-muted'
                 }`}
               >
                 {icon}
@@ -183,7 +183,7 @@ function Stat({ label, value, href }: { label: string; value: string; href?: str
 
 function Grid({ items }: { items: FeedItem[] }) {
   return (
-    <div className="grid grid-cols-3 gap-[2px] mt-1">
+    <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-[2px] mt-1">
       {items.map(p => (
         <Link
           key={p.id}
@@ -201,8 +201,12 @@ function Grid({ items }: { items: FeedItem[] }) {
               <Play className="w-7 h-7 text-white/60" fill="rgba(255,255,255,0.3)" />
             </div>
           )}
+          {/* Creator avatar badge (top-left) + LIVE badge (top-right), like mobile */}
+          <span className="absolute top-1.5 left-1.5 w-6 h-6 rounded-full bg-primary flex items-center justify-center border border-white/70">
+            <span className="text-white text-[10px] font-bold">{p.creatorAvatar}</span>
+          </span>
           {p.isLive && (
-            <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-primary text-white text-[9px] font-bold tracking-wide">LIVE</span>
+            <span className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded bg-primary text-white text-[9px] font-bold tracking-wide">LIVE</span>
           )}
           <div className="absolute bottom-1 left-1.5 right-1.5 flex items-center text-white text-[10px] font-semibold">
             <Heart className="w-3 h-3 mr-1" fill="white" />

@@ -20,7 +20,8 @@ import {
   Lock,
   Eye,
   Smartphone,
-  Check
+  Check,
+  Trash2
 } from 'lucide-react';
 import { useTheme } from '../../providers/theme-provider';
 import { useAuth } from '../../providers/auth-provider';
@@ -70,7 +71,7 @@ function SettingsPage() {
   const [showLocationPicker, setShowLocationPicker] = useState(false);
 
   return (
-    <div className="min-h-screen bg-theme pb-20 md:pb-0">
+    <div className="min-h-screen bg-theme pb-20 lg:pb-0">
       <div className="max-w-2xl mx-auto px-4 py-6 md:px-6">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
@@ -202,11 +203,18 @@ function SettingsPage() {
         {/* Logout */}
         <div className="mb-6">
           <div className="bg-surface border border-theme rounded-2xl overflow-hidden">
-            <SettingItem 
-              icon={LogOut} 
-              title={t('logout')} 
+            <SettingItem
+              icon={LogOut}
+              title={t('logout')}
               subtitle="Sign out of your account"
               onClick={logout}
+              danger
+            />
+            <SettingItem
+              icon={Trash2}
+              title="Delete account"
+              subtitle="Deactivate now, 30 days to change your mind"
+              href="/account/delete"
               danger
             />
           </div>

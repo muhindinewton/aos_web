@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ArrowLeft,
@@ -8,7 +8,12 @@ import {
   Image as ImageIcon,
   Type as TypeIcon,
   Clock,
+  MapPin,
+  LocateFixed,
 } from 'lucide-react';
+import { getShopLocation, setShopLocation as persistShopLocation, osmEmbedUrl } from '../../../lib/shop-location';
+
+const SHOP_NAME = 'TechHub Kenya';
 
 type DaySchedule = { open: string; close: string; enabled: boolean };
 
@@ -43,6 +48,29 @@ export default function StorefrontCustomizePage() {
   const [hours, setHours]             = useState<Record<string, DaySchedule>>(DEFAULT_HOURS);
   const [saved, setSaved]             = useState(false);
 
+  /* ── shop location pin ── */
+  const [address, setAddress] = useState('');
+  const [pin, setPin]         = useState<{ lat: number; lng: number } | null>(null);
+  const [pinning, setPinning] = useState(false);
+
+  useEffect(() => {
+    const existing = getShopLocation(SHOP_NAME);
+    if (existing) {
+      setAddress(existing.address);
+      setPin({ lat: existing.lat, lng: existing.lng });
+    }
+  }, []);
+
+  const useMyLocation = () => {
+    if (!navigator.geolocation) return;
+    setPinning(true);
+    navigator.geolocation.getCurrentPosition(
+      pos => { setPin({ lat: pos.coords.latitude, lng: pos.coords.longitude }); setPinning(false); },
+      () => setPinning(false),
+      { timeout: 8000 },
+    );
+  };
+
   const handleLogo = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -56,6 +84,9 @@ export default function StorefrontCustomizePage() {
   };
 
   const save = () => {
+    if (pin && address.trim()) {
+      persistShopLocation({ shopName: SHOP_NAME, lat: pin.lat, lng: pin.lng, address: address.trim() });
+    }
     setSaved(true);
     setTimeout(() => router.back(), 900);
   };
@@ -170,6 +201,38 @@ export default function StorefrontCustomizePage() {
               );
             })}
           </div>
+        </Section>
+
+        {/* ── Shop Location ── */}
+        <Section icon={<MapPin className="w-4 h-4" />} title="Shop Location">
+          <p className="text-xs text-theme-muted mb-3">
+            Buyers see this pin on your product pages with directions to your shop.
+          </p>
+          <input
+            type="text"
+            value={address}
+            onChange={e => setAddress(e.target.value)}
+            placeholder="Shop address (e.g. Westlands, Nairobi)"
+            className="w-full bg-elevated border border-theme rounded-xl py-2.5 px-4 text-sm text-theme-primary placeholder:text-theme-muted outline-none focus:border-primary mb-3"
+          />
+          <button
+            onClick={useMyLocation}
+            disabled={pinning}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-primary text-primary text-sm font-semibold hover:bg-primary/5 transition-colors disabled:opacity-50"
+          >
+            <LocateFixed className="w-4 h-4" />
+            {pinning ? 'Locating…' : pin ? 'Update pin to my location' : 'Pin my current location'}
+          </button>
+          {pin && (
+            <div className="mt-3 rounded-xl overflow-hidden border border-theme">
+              <iframe
+                title="Shop location preview"
+                src={osmEmbedUrl(pin.lat, pin.lng)}
+                className="w-full h-36 border-0 pointer-events-none"
+                loading="lazy"
+              />
+            </div>
+          )}
         </Section>
 
         {/* ── Save (bottom, mirrors mobile) ── */}

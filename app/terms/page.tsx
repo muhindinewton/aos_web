@@ -8,7 +8,7 @@ const sections = [
   {
     heading: '1. Acceptance of Terms',
     content:
-      'By accessing or using AOS (Africa Online Stores), you agree to be bound by these Terms & Conditions. If you do not agree to these terms, please do not use our platform. We reserve the right to modify these terms at any time, and your continued use constitutes acceptance of any changes.',
+      'By accessing or using AOS (Africa Online Space), you agree to be bound by these Terms & Conditions. If you do not agree to these terms, please do not use our platform. We reserve the right to modify these terms at any time, and your continued use constitutes acceptance of any changes.',
   },
   {
     heading: '2. Use of the Platform',
@@ -63,7 +63,7 @@ export default function TermsPage() {
 
       {/* Intro */}
       <p className="text-sm text-theme-muted leading-relaxed mb-7">
-        At AOS (Africa Online Stores), we are committed to providing a safe and transparent
+        At AOS (Africa Online Space), we are committed to providing a safe and transparent
         marketplace. These Terms &amp; Conditions explain your rights and obligations when using our
         platform. By accessing or using AOS, you agree to the practices described in this document.
       </p>

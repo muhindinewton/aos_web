@@ -7,6 +7,7 @@ import { ArrowLeft, Search, Grid3X3, List, SlidersHorizontal, X, ChevronDown } f
 import { products } from '../lib/data';
 import { CATEGORY_SUBS, CATEGORY_DATA_NAMES } from '../lib/category-data';
 import { ProductCard } from '../components/product-card';
+import { usePageLoad, SkeletonGrid, AppErrorView } from '../components/app-state-views';
 
 const SORT_OPTIONS = ['Best Match', 'Newest First', 'Price: Low to High', 'Price: High to Low', 'Top Rated'];
 
@@ -32,12 +33,13 @@ function SubcategoryContent() {
   const [sort, setSort]             = useState('Best Match');
   const [showSort, setShowSort]     = useState(false);
   const [viewMode, setViewMode]     = useState<'grid' | 'list'>('grid');
+  const { loading, error, retry, forceEmpty } = usePageLoad();
 
   const baseProducts = dataName
     ? products.filter(p => p.category === dataName)
     : products;
 
-  const filtered = baseProducts.filter(p => {
+  const filtered = (forceEmpty ? [] : baseProducts).filter(p => {
     if (search && !p.title.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
@@ -52,7 +54,7 @@ function SubcategoryContent() {
   const displayProducts = sorted.length > 0 ? sorted : products.slice(0, 12);
 
   return (
-    <div className="min-h-screen bg-theme pb-20 md:pb-0">
+    <div className="min-h-screen bg-theme pb-20 lg:pb-0">
 
       {/* ── Header ── */}
       <div className="sticky top-0 z-30 bg-surface border-b border-theme">
@@ -169,7 +171,11 @@ function SubcategoryContent() {
 
       {/* ── Product Grid ── */}
       <div className="max-w-7xl mx-auto px-4 md:px-6 pb-10">
-        {displayProducts.length === 0 ? (
+        {loading ? (
+          <SkeletonGrid items={8} />
+        ) : error ? (
+          <AppErrorView onRetry={retry} />
+        ) : displayProducts.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-theme-muted text-sm">No products found</p>
             <button onClick={() => { setSearch(''); setActiveSub('All'); }} className="mt-3 text-primary text-sm font-medium hover:underline">

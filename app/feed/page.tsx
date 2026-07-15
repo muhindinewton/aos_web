@@ -20,7 +20,6 @@ import {
   ShoppingCart,
   BadgeCheck,
   Heart,
-  User as UserIcon,
   Tv,
   LayoutGrid,
   Smile,
@@ -28,7 +27,6 @@ import {
   Trophy,
   GraduationCap,
 } from 'lucide-react';
-import { useAuth } from '@/app/providers/auth-provider';
 import {
   CATEGORY_COLOR,
   CATEGORY_LABEL,
@@ -618,23 +616,6 @@ function SuggestedCreatorCard({
   );
 }
 
-// ── Profile Avatar (links to /feed/profile) ────────────────
-function ProfileAvatar() {
-  const { user } = useAuth();
-  const initial = user?.displayName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || null;
-  return (
-    <Link
-      href="/feed/profile"
-      className="w-10 h-10 rounded-full bg-primary/10 border-[1.5px] flex items-center justify-center flex-shrink-0"
-      style={{ borderColor: 'rgba(193, 18, 31, 0.4)' }}
-    >
-      {initial
-        ? <span className="text-primary text-sm font-bold">{initial}</span>
-        : <UserIcon className="w-5 h-5 text-primary" />}
-    </Link>
-  );
-}
-
 // ── Main Feed Page ─────────────────────────────────────────
 export default function FeedPage() {
   const [tab, setTab]                   = useState<'foryou' | 'following' | 'live'>('foryou');
@@ -693,8 +674,6 @@ export default function FeedPage() {
               <span className="text-white text-[9px] font-bold">3</span>
             </span>
           </Link>
-          {/* Profile avatar */}
-          <ProfileAvatar />
         </div>
       </div>
 

@@ -14,8 +14,9 @@ import {
   User,
   Edit3,
   Lock,
-  Briefcase,
-  ArrowRight,
+  ShieldCheck,
+  Activity,
+  Trash2,
   Store,
   ListOrdered,
   Bell,
@@ -66,18 +67,21 @@ export default function AccountPage() {
         {/* Profile Card or Login Prompt */}
         {mounted && isLoggedIn ? (
           <div className="bg-surface border border-theme rounded-2xl p-4 flex items-center gap-4 mb-5">
-            <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <User className="w-7 h-7 text-primary" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h2 className="text-base font-semibold text-theme-primary truncate">
-                {user?.displayName || 'User'}
-              </h2>
-              <p className="text-sm text-theme-muted truncate">{user?.email}</p>
-            </div>
+            <Link href="/account/profile" className="flex items-center gap-4 flex-1 min-w-0">
+              <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <User className="w-7 h-7 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h2 className="text-base font-semibold text-theme-primary truncate">
+                  {user?.displayName || 'User'}
+                </h2>
+                <p className="text-sm text-theme-muted truncate">{user?.email}</p>
+              </div>
+            </Link>
             <Link
-              href="/account/settings"
-              className="w-11 h-11 rounded-xl bg-elevated flex items-center justify-center text-theme-primary hover:bg-primary/5 transition-colors"
+              href="/account/profile"
+              className="w-11 h-11 rounded-full bg-elevated flex items-center justify-center text-theme-primary hover:bg-primary/5 transition-colors flex-shrink-0"
+              aria-label="Edit profile"
             >
               <Edit3 className="w-5 h-5" />
             </Link>
@@ -108,23 +112,21 @@ export default function AccountPage() {
           </div>
         )}
 
-        {/* Business Verification Banner - Only for logged in users */}
+        {/* Get Verified banner - Only for logged in users */}
         {mounted && isLoggedIn && (
           <Link
             href="/account/verification"
-            className="block bg-gradient-to-r from-primary to-red-600 rounded-2xl p-4 mb-6"
+            className="block bg-primary/10 border border-primary/20 rounded-2xl p-4 mb-6 hover:bg-primary/15 transition-colors"
           >
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
-                <Briefcase className="w-6 h-6 text-white" />
+              <div className="w-12 h-12 rounded-xl bg-surface flex items-center justify-center flex-shrink-0">
+                <ShieldCheck className="w-6 h-6 text-primary" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-base font-bold text-white">Verify Your Business</h3>
-                <p className="text-xs text-white/80">Get verified as a registered business</p>
+                <h3 className="text-base font-bold text-theme-primary">Get Verified</h3>
+                <p className="text-xs text-theme-secondary">Verify as an individual or a business</p>
               </div>
-              <div className="w-9 h-9 rounded-lg bg-white flex items-center justify-center flex-shrink-0">
-                <ArrowRight className="w-4 h-4 text-primary" />
-              </div>
+              <ChevronRight className="w-5 h-5 text-theme-muted flex-shrink-0" />
             </div>
           </Link>
         )}
@@ -135,6 +137,7 @@ export default function AccountPage() {
             <MenuItem href="/sell/listings" icon={ListOrdered} label="My Listings" />
             <MenuItem href="/account/storefront" icon={Store} label="My Storefront" />
             <MenuItem href="/account/wishlist" icon={Heart} label="My Wishlist" />
+            <MenuItem href="/account/activity" icon={Activity} label="Activity Center" />
           </MenuCard>
         )}
 
@@ -144,9 +147,10 @@ export default function AccountPage() {
             <SectionTitle>Account settings</SectionTitle>
             <MenuCard>
               <MenuItem href="/account/security" icon={Lock} label="Password & Security" />
-              <MenuItem href="/account/notifications" icon={Bell} label="Notification Preferences" />
+              <MenuItem href="/account/notifications" icon={Bell} label="Notifications Preferences" />
               <MenuItem href="/account/preferences" icon={Sliders} label="Application Preferences" />
               <ThemeToggle isDarkMode={mounted && isDarkMode} onToggle={toggleTheme} />
+              <MenuItem href="/account/delete" icon={Trash2} label="Delete account" danger />
             </MenuCard>
           </>
         )}
@@ -238,20 +242,22 @@ function MenuItem({
   href,
   icon: Icon,
   label,
+  danger = false,
 }: {
   href: string;
   icon: React.ElementType;
   label: string;
+  danger?: boolean;
 }) {
   return (
     <Link
       href={href}
       className="flex items-center gap-4 p-4 hover:bg-elevated transition-colors"
     >
-      <div className="w-10 h-10 rounded-xl bg-elevated flex items-center justify-center">
-        <Icon className="w-5 h-5 text-theme-secondary" />
+      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${danger ? 'bg-primary/10' : 'bg-elevated'}`}>
+        <Icon className={`w-5 h-5 ${danger ? 'text-primary' : 'text-theme-secondary'}`} />
       </div>
-      <span className="flex-1 font-medium text-theme-primary">{label}</span>
+      <span className={`flex-1 font-medium ${danger ? 'text-primary' : 'text-theme-primary'}`}>{label}</span>
       <ChevronRight className="w-5 h-5 text-theme-muted" />
     </Link>
   );

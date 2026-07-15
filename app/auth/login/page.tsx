@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, Eye, EyeOff, Mail, Lock } from 'lucide-react';
+import { ChevronLeft, Eye, EyeOff, Mail, Lock, RotateCcw } from 'lucide-react';
 import { useAuth } from '../../providers/auth-provider';
+
+const DELETED_AT_KEY = 'aos-account-deleted-at';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -13,6 +15,13 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState<'google' | 'apple' | null>(null);
+  const [pendingDeletion, setPendingDeletion] = useState(false);
+
+  useEffect(() => {
+    try {
+      setPendingDeletion(Boolean(window.localStorage.getItem(DELETED_AT_KEY)));
+    } catch { /* storage unavailable */ }
+  }, []);
   const { login, loginWithGoogle, loginWithApple, errorMessage } = useAuth();
   const router = useRouter();
 
@@ -66,6 +75,19 @@ export default function LoginPage() {
         <div className="bg-surface border border-theme rounded-2xl p-6 md:p-8 shadow-soft">
           <h1 className="text-2xl font-bold text-theme-primary mb-1">Welcome Back</h1>
           <p className="text-sm text-theme-muted mb-6">Sign in to continue shopping and selling</p>
+
+          {pendingDeletion && (
+            <Link
+              href="/auth/restore"
+              className="flex items-center gap-3 p-3.5 mb-5 rounded-xl bg-[#F5A623]/10 border border-[#F5A623]/30 hover:bg-[#F5A623]/15 transition-colors"
+            >
+              <RotateCcw className="w-5 h-5 text-[#F5A623] flex-shrink-0" />
+              <span className="text-sm text-theme-primary">
+                Your account is scheduled for deletion.{' '}
+                <span className="font-semibold text-[#F5A623]">Restore it</span> before it&apos;s permanently removed.
+              </span>
+            </Link>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Email Input */}

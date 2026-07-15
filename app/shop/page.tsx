@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { Grid3X3, List } from 'lucide-react';
 import { products, categories } from '../lib/data';
 import { ProductCard } from '../components/product-card';
+import { usePageLoad, SkeletonGrid, AppErrorView, AppEmptyView } from '../components/app-state-views';
 
 type FilterType = 'all' | 'recent' | 'deals' | 'flash' | 'offers';
 
@@ -25,8 +26,9 @@ function ShopContent() {
   const [selectedCategory, setSelectedCategory] = useState(categoryParam || 'All');
   const [filter, setFilter] = useState<FilterType>(filterParam || 'all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const { loading, error, retry, forceEmpty } = usePageLoad();
 
-  const filteredProducts = products.filter((product) => {
+  const filteredProducts = (forceEmpty ? [] : products).filter((product) => {
     if (selectedCategory !== 'All' && product.category !== selectedCategory) return false;
     if (filter === 'deals' && !product.isOffer) return false;
     if (filter === 'flash' && !product.isOffer) return false;
@@ -67,8 +69,15 @@ function ShopContent() {
       </div>
 
       {/* Products */}
-      {filteredProducts.length === 0 ? (
-        <div className="text-center py-16"><p className="text-theme-muted">No products found for this filter.</p></div>
+      {loading ? (
+        <SkeletonGrid items={8} />
+      ) : error ? (
+        <AppErrorView onRetry={retry} />
+      ) : filteredProducts.length === 0 ? (
+        <AppEmptyView
+          title="No products found"
+          message="Nothing matches this filter yet. Try a different category or filter."
+        />
       ) : (
         <div className={`grid gap-3 md:gap-4 ${viewMode === 'grid' ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4' : 'grid-cols-1 md:grid-cols-2'}`}>
           {filteredProducts.map((product) => (

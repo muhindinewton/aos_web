@@ -90,7 +90,7 @@ export default function TipsPage({ params }: { params: { slug: string } }) {
   const { title, subtitle, gradient, HeaderIcon, tips } = config;
 
   return (
-    <div className="bg-theme min-h-screen pb-16 md:pb-6">
+    <div className="bg-theme min-h-screen pb-16 lg:pb-6">
 
       {/* ── Hero Header ── */}
       <div className={`bg-gradient-to-br ${gradient} relative overflow-hidden`}>

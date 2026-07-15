@@ -8,9 +8,10 @@ import { PreferencesProvider } from './providers/preferences-provider';
 import { Navbar } from './components/bottom-nav';
 import { Footer } from './components/footer';
 import { AppWrapper } from './components/app-wrapper';
+import { OfflineBanner } from './components/offline-banner';
 
 export const metadata: Metadata = {
-  title: 'AOS - Africa Online Stores',
+  title: 'AOS - Africa Online Space',
   description: 'Buy and sell anything in Africa',
 };
 
@@ -33,9 +34,10 @@ export default function RootLayout({
           <AuthProvider>
             <ToastProvider>
               <AppWrapper>
+                <OfflineBanner />
                 <Navbar />
-                <main className="pb-20 md:pb-0">{children}</main>
-                <div className="hidden md:block"><Footer /></div>
+                <main className="pb-20 lg:pb-0">{children}</main>
+                <div className="hidden lg:block"><Footer /></div>
               </AppWrapper>
             </ToastProvider>
           </AuthProvider>

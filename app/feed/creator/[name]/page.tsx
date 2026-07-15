@@ -189,7 +189,7 @@ function PostsGrid({ posts }: { posts: FeedItem[] }) {
     return <EmptyTab icon={<Grid3x3 className="w-14 h-14 opacity-30" />} message="No posts yet" />;
   }
   return (
-    <div className="grid grid-cols-3 gap-[2px] mt-1">
+    <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-[2px] mt-1">
       {posts.map(p => (
         <Link
           key={p.id}

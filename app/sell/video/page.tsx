@@ -16,14 +16,52 @@ import {
   Plus,
   Upload,
   Search,
+  Scissors,
+  Music,
+  Type,
+  Gauge,
+  FileText,
 } from 'lucide-react';
 import { products } from '../../lib/data';
 
-type RecordState = 'idle' | 'recording' | 'preview' | 'details';
+type RecordState = 'idle' | 'recording' | 'preview' | 'editor' | 'details';
 type Speed = 0.5 | 1 | 2 | 3;
 const MAX_DESC = 512;
 const DURATIONS = [15, 30, 60] as const;
 const SPEEDS: Speed[] = [0.5, 1, 2, 3];
+
+/* ── Reel editor: sounds, overlays, drafts ───────────────────────── */
+type Sound = { title: string; artist: string; duration: string };
+type TextOverlay = { id: string; text: string; color: string; x: number; y: number };
+type Draft = { id: string; description: string; hashtags: string; sound: Sound | null; savedAt: string };
+
+const SOUNDS: Sound[] = [
+  { title: 'I Know Who I Be', artist: 'Davido, JAZZWRLD, GL_Ceejay', duration: '0:28' },
+  { title: 'Calm Down (Remix)', artist: 'LOVIXX, STOSLIV', duration: '2:21' },
+  { title: 'Silent Discipline', artist: 'Green Mic', duration: '4:26' },
+  { title: 'God Is Still Writing My Story', artist: 'Ellev8', duration: '4:13' },
+  { title: 'Gifts to your future self', artist: 'adam.dodson', duration: '0:39' },
+  { title: 'Sunset Drive', artist: 'Nairobi Nights', duration: '0:45' },
+  { title: 'Amapiano Groove', artist: 'DJ Kasi', duration: '1:02' },
+];
+
+const OVERLAY_COLORS = ['#FFFFFF', '#C1121F', '#F5A623', '#2ECC71', '#4DA3FF', '#111111'];
+
+const DRAFTS_KEY = 'aos-reel-drafts';
+
+function loadDrafts(): Draft[] {
+  try {
+    return JSON.parse(window.localStorage.getItem(DRAFTS_KEY) || '[]') as Draft[];
+  } catch {
+    return [];
+  }
+}
+
+function saveDrafts(drafts: Draft[]) {
+  try {
+    window.localStorage.setItem(DRAFTS_KEY, JSON.stringify(drafts));
+  } catch { /* storage unavailable */ }
+}
 
 export default function ShortVideoPage() {
   const router = useRouter();
@@ -47,6 +85,47 @@ export default function ShortVideoPage() {
   const [taggedProducts, setTaggedProducts] = useState<string[]>([]);
   const [showProductPicker, setShowProductPicker] = useState(false);
   const [productQuery, setProductQuery] = useState('');
+
+  /* ── editor state ── */
+  const [overlays, setOverlays]         = useState<TextOverlay[]>([]);
+  const [editingText, setEditingText]   = useState<TextOverlay | null>(null);
+  const [sound, setSound]               = useState<Sound | null>(null);
+  const [showSoundPicker, setShowSoundPicker] = useState(false);
+  const [soundQuery, setSoundQuery]     = useState('');
+  const [showSpeedSheet, setShowSpeedSheet] = useState(false);
+  const [showTrimSheet, setShowTrimSheet]   = useState(false);
+  const [trim, setTrim]                 = useState<[number, number]>([0, 100]);
+  const [drafts, setDrafts]             = useState<Draft[]>([]);
+  const [showDrafts, setShowDrafts]     = useState(false);
+
+  useEffect(() => { setDrafts(loadDrafts()); }, []);
+
+  const saveAsDraft = () => {
+    const draft: Draft = {
+      id: String(Date.now()),
+      description,
+      hashtags,
+      sound,
+      savedAt: new Date().toLocaleDateString([], { month: 'short', day: 'numeric' }),
+    };
+    const next = [draft, ...drafts];
+    setDrafts(next);
+    saveDrafts(next);
+    router.push('/sell');
+  };
+
+  const restoreDraft = (d: Draft) => {
+    setDesc(d.description);
+    setHashtags(d.hashtags);
+    setSound(d.sound);
+    setShowDrafts(false);
+  };
+
+  const deleteDraft = (id: string) => {
+    const next = drafts.filter(d => d.id !== id);
+    setDrafts(next);
+    saveDrafts(next);
+  };
 
   const startCamera = async (fm = facingMode) => {
     try {
@@ -130,12 +209,244 @@ export default function ShortVideoPage() {
   const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
   const pct = Math.min((timer / maxDur) * 100, 100);
 
+  /* ── EDITOR SCREEN ── */
+  if (recState === 'editor') {
+    return (
+      <div className="fixed inset-0 z-[100] bg-[#0F1115] flex flex-col items-center">
+        {/* Header */}
+        <div className="w-full flex items-center justify-between px-4 pt-3 pb-2 z-20">
+          <button onClick={() => setRecState('preview')} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
+            <ChevronLeft className="w-5 h-5 text-white" />
+          </button>
+          {sound ? (
+            <button
+              onClick={() => setShowSoundPicker(true)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 max-w-[60%]"
+            >
+              <Music className="w-3.5 h-3.5 text-white flex-shrink-0" />
+              <span className="text-white text-xs font-medium truncate">{sound.title} · {sound.artist}</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => setShowSoundPicker(true)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10"
+            >
+              <Music className="w-3.5 h-3.5 text-white" />
+              <span className="text-white text-xs font-medium">Add sound</span>
+            </button>
+          )}
+          <button
+            onClick={() => setRecState('details')}
+            className="px-4 py-2 rounded-full bg-primary text-white text-sm font-semibold"
+          >
+            Next
+          </button>
+        </div>
+
+        {/* Preview with overlays */}
+        <div className="relative flex-1 w-full max-w-md overflow-hidden rounded-2xl my-2">
+          {recordedUrl && (
+            <video src={recordedUrl} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover" />
+          )}
+          {overlays.map(o => (
+            <button
+              key={o.id}
+              onClick={() => setEditingText(o)}
+              className="absolute -translate-x-1/2 -translate-y-1/2 text-xl font-bold drop-shadow-lg px-2"
+              style={{ left: `${o.x}%`, top: `${o.y}%`, color: o.color }}
+            >
+              {o.text}
+            </button>
+          ))}
+        </div>
+
+        {/* Toolbar */}
+        <div className="w-full bg-[#0F1115] py-3 flex justify-center gap-2 overflow-x-auto hide-scrollbar px-3">
+          {[
+            { icon: Scissors, label: 'Edit', onClick: () => setShowTrimSheet(true) },
+            { icon: Music, label: 'Audio', onClick: () => setShowSoundPicker(true) },
+            { icon: Type, label: 'Text', onClick: () => setEditingText({ id: String(Date.now()), text: '', color: '#FFFFFF', x: 50, y: 45 }) },
+            { icon: Gauge, label: 'Speed', onClick: () => setShowSpeedSheet(true) },
+          ].map(({ icon: Icon, label, onClick }) => (
+            <button key={label} onClick={onClick} className="flex flex-col items-center gap-1.5 w-[68px] flex-shrink-0">
+              <div className="w-[46px] h-[46px] rounded-xl bg-white/10 flex items-center justify-center">
+                <Icon className="w-[22px] h-[22px] text-white" />
+              </div>
+              <span className="text-white/70 text-[11px]">{label}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Text editor sheet */}
+        {editingText && (
+          <div className="absolute inset-0 z-30 bg-black/70 flex flex-col items-center justify-center px-6">
+            <input
+              autoFocus
+              value={editingText.text}
+              onChange={e => setEditingText({ ...editingText, text: e.target.value })}
+              placeholder="Type something…"
+              className="w-full max-w-sm bg-transparent text-center text-2xl font-bold outline-none placeholder:text-white/40"
+              style={{ color: editingText.color }}
+            />
+            <div className="flex gap-3 mt-6">
+              {OVERLAY_COLORS.map(c => (
+                <button
+                  key={c}
+                  onClick={() => setEditingText({ ...editingText, color: c })}
+                  className={`w-8 h-8 rounded-full border-2 ${editingText.color === c ? 'border-primary scale-110' : 'border-white/40'}`}
+                  style={{ backgroundColor: c }}
+                  aria-label={`Text color ${c}`}
+                />
+              ))}
+            </div>
+            <div className="flex gap-3 mt-8">
+              <button
+                onClick={() => {
+                  setOverlays(prev => prev.filter(o => o.id !== editingText.id));
+                  setEditingText(null);
+                }}
+                className="px-5 py-2.5 rounded-full bg-white/15 text-white text-sm font-semibold"
+              >
+                {overlays.some(o => o.id === editingText.id) ? 'Remove' : 'Cancel'}
+              </button>
+              <button
+                onClick={() => {
+                  if (editingText.text.trim()) {
+                    setOverlays(prev => {
+                      const exists = prev.some(o => o.id === editingText.id);
+                      return exists
+                        ? prev.map(o => (o.id === editingText.id ? editingText : o))
+                        : [...prev, editingText];
+                    });
+                  }
+                  setEditingText(null);
+                }}
+                className="px-6 py-2.5 rounded-full bg-primary text-white text-sm font-semibold"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Sound picker sheet */}
+        {showSoundPicker && (
+          <div className="absolute inset-0 z-30 flex items-end bg-black/60">
+            <div className="w-full bg-[#16181D] rounded-t-3xl max-h-[70%] flex flex-col">
+              <div className="p-4 border-b border-white/10 flex-shrink-0">
+                <div className="w-10 h-1 bg-white/20 rounded-full mx-auto mb-3" />
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-bold text-white">Add sound</h3>
+                  <button onClick={() => setShowSoundPicker(false)} aria-label="Close">
+                    <X className="w-5 h-5 text-white/60" />
+                  </button>
+                </div>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                  <input
+                    value={soundQuery}
+                    onChange={e => setSoundQuery(e.target.value)}
+                    placeholder="Search sounds…"
+                    className="w-full bg-white/10 rounded-xl py-2.5 pl-9 pr-4 text-sm text-white placeholder:text-white/40 outline-none"
+                  />
+                </div>
+              </div>
+              <div className="overflow-y-auto flex-1 p-2">
+                {SOUNDS.filter(s =>
+                  (s.title + s.artist).toLowerCase().includes(soundQuery.toLowerCase()),
+                ).map(s => {
+                  const selected = sound?.title === s.title;
+                  return (
+                    <button
+                      key={s.title}
+                      onClick={() => { setSound(selected ? null : s); setShowSoundPicker(false); }}
+                      className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-colors ${selected ? 'bg-primary/20' : 'hover:bg-white/5'}`}
+                    >
+                      <div className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
+                        <Music className="w-5 h-5 text-white/70" />
+                      </div>
+                      <div className="flex-1 text-left min-w-0">
+                        <p className="text-sm font-semibold text-white truncate">{s.title}</p>
+                        <p className="text-xs text-white/50 truncate">{s.artist} · {s.duration}</p>
+                      </div>
+                      {selected && <Check className="w-4 h-4 text-primary flex-shrink-0" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Speed sheet */}
+        {showSpeedSheet && (
+          <div className="absolute inset-0 z-30 flex items-end bg-black/60" onClick={() => setShowSpeedSheet(false)}>
+            <div className="w-full bg-[#16181D] rounded-t-3xl p-5" onClick={e => e.stopPropagation()}>
+              <div className="w-10 h-1 bg-white/20 rounded-full mx-auto mb-4" />
+              <h3 className="font-bold text-white mb-4">Playback speed</h3>
+              <div className="flex justify-center gap-3 pb-4">
+                {SPEEDS.map(s => (
+                  <button
+                    key={s}
+                    onClick={() => { setSpeed(s); setShowSpeedSheet(false); }}
+                    className={`w-12 h-12 rounded-full text-sm font-bold transition-colors ${speed === s ? 'bg-primary text-white' : 'bg-white/10 text-white'}`}
+                  >
+                    {s}x
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Trim sheet */}
+        {showTrimSheet && (
+          <div className="absolute inset-0 z-30 flex items-end bg-black/60" onClick={() => setShowTrimSheet(false)}>
+            <div className="w-full bg-[#16181D] rounded-t-3xl p-5" onClick={e => e.stopPropagation()}>
+              <div className="w-10 h-1 bg-white/20 rounded-full mx-auto mb-4" />
+              <h3 className="font-bold text-white mb-1">Trim clip</h3>
+              <p className="text-xs text-white/50 mb-5">Drag to choose the section of your clip to keep</p>
+              <div className="space-y-4 pb-4">
+                <div>
+                  <div className="flex justify-between text-xs text-white/60 mb-1.5">
+                    <span>Start</span><span>{trim[0]}%</span>
+                  </div>
+                  <input
+                    type="range" min={0} max={trim[1] - 5} value={trim[0]}
+                    onChange={e => setTrim([Number(e.target.value), trim[1]])}
+                    className="w-full accent-[#C1121F]"
+                  />
+                </div>
+                <div>
+                  <div className="flex justify-between text-xs text-white/60 mb-1.5">
+                    <span>End</span><span>{trim[1]}%</span>
+                  </div>
+                  <input
+                    type="range" min={trim[0] + 5} max={100} value={trim[1]}
+                    onChange={e => setTrim([trim[0], Number(e.target.value)])}
+                    className="w-full accent-[#C1121F]"
+                  />
+                </div>
+                <button
+                  onClick={() => setShowTrimSheet(false)}
+                  className="w-full py-3 rounded-2xl bg-primary text-white font-semibold text-sm"
+                >
+                  Apply
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   /* ── DETAILS SCREEN ── */
   if (recState === 'details') {
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <div className="bg-surface border-b border-theme flex items-center gap-3 px-4 py-3 sticky top-0 z-10">
-          <button onClick={() => setRecState('preview')} className="w-10 h-10 flex items-center justify-center text-theme-primary">
+          <button onClick={() => setRecState('editor')} className="w-10 h-10 flex items-center justify-center text-theme-primary">
             <ChevronLeft className="w-6 h-6" />
           </button>
           <h1 className="flex-1 text-lg font-bold text-theme-primary">Post Short</h1>
@@ -211,10 +522,16 @@ export default function ShortVideoPage() {
         </div>
 
         <div className="fixed bottom-0 left-0 right-0 bg-surface border-t border-theme px-4 pt-4 pb-8 shadow-lg">
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-2xl mx-auto flex gap-3">
+            <button
+              onClick={saveAsDraft}
+              className="flex-1 py-4 rounded-2xl bg-elevated border border-theme text-theme-primary font-bold text-base hover:bg-surface transition-colors"
+            >
+              Save draft
+            </button>
             <button
               onClick={() => router.push('/sell')}
-              className="w-full py-4 rounded-2xl bg-primary text-white font-bold text-base hover:bg-primary-hover transition-colors"
+              className="flex-[2] py-4 rounded-2xl bg-primary text-white font-bold text-base hover:bg-primary-hover transition-colors"
             >
               Post Short
             </button>
@@ -353,6 +670,50 @@ export default function ShortVideoPage() {
               </div>
               <span className="text-white text-[10px]">Upload</span>
             </button>
+            {drafts.length > 0 && (
+              <button onClick={() => setShowDrafts(true)} className="flex flex-col items-center gap-1">
+                <div className="w-11 h-11 rounded-full bg-black/50 flex items-center justify-center relative">
+                  <FileText className="w-5 h-5 text-white" />
+                  <span className="absolute -top-1 -right-1 w-4.5 h-4.5 w-[18px] h-[18px] rounded-full bg-primary text-white text-[9px] font-bold flex items-center justify-center">
+                    {drafts.length}
+                  </span>
+                </div>
+                <span className="text-white text-[10px]">Drafts</span>
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Drafts sheet */}
+        {showDrafts && (
+          <div className="absolute inset-0 z-30 flex items-end bg-black/60" onClick={() => setShowDrafts(false)}>
+            <div className="w-full bg-[#16181D] rounded-t-3xl max-h-[70%] flex flex-col p-4" onClick={e => e.stopPropagation()}>
+              <div className="w-10 h-1 bg-white/20 rounded-full mx-auto mb-3" />
+              <h3 className="font-bold text-white mb-3">Drafts</h3>
+              <div className="overflow-y-auto flex-1 space-y-1">
+                {drafts.map(d => (
+                  <div key={d.id} className="flex items-center gap-3 px-2 py-2.5 rounded-xl hover:bg-white/5">
+                    <div className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
+                      <FileText className="w-5 h-5 text-white/70" />
+                    </div>
+                    <button onClick={() => restoreDraft(d)} className="flex-1 text-left min-w-0">
+                      <p className="text-sm font-semibold text-white truncate">
+                        {d.description || 'Untitled draft'}
+                      </p>
+                      <p className="text-xs text-white/50 truncate">
+                        {d.savedAt}{d.sound ? ` · 🎵 ${d.sound.title}` : ''}{d.hashtags ? ` · ${d.hashtags}` : ''}
+                      </p>
+                    </button>
+                    <button onClick={() => deleteDraft(d.id)} className="p-2" aria-label="Delete draft">
+                      <X className="w-4 h-4 text-white/50" />
+                    </button>
+                  </div>
+                ))}
+                {drafts.length === 0 && (
+                  <p className="text-sm text-white/50 text-center py-6">No drafts yet</p>
+                )}
+              </div>
+            </div>
           </div>
         )}
 
@@ -426,7 +787,7 @@ export default function ShortVideoPage() {
                 <RotateCcw className="w-4 h-4" /> Retake
               </button>
               <button
-                onClick={() => setRecState('details')}
+                onClick={() => setRecState('editor')}
                 className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-primary rounded-full text-white font-semibold text-sm"
               >
                 <Check className="w-4 h-4" /> Next

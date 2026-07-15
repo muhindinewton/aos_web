@@ -22,10 +22,12 @@ import {
   ThumbsDown,
   ThumbsUp,
   TrendingUp,
+  Navigation,
 } from 'lucide-react';
 import { products } from '../../lib/data';
 import { ProductCard } from '../../components/product-card';
 import { useHasContactedSeller } from '../../lib/contacted-sellers';
+import { getShopLocation, osmEmbedUrl, type ShopLocation } from '../../lib/shop-location';
 
 const reviews = [
   {
@@ -89,8 +91,13 @@ export default function ProductDetailPage() {
 
   const [liked, setLiked] = useState(false);
   const [currentImage, setCurrentImage] = useState(0);
+  const [shopLocation, setShopLocation] = useState<ShopLocation | null>(null);
   const touchStartX = useRef<number | null>(null);
   const imageCount = 4;
+
+  useEffect(() => {
+    setShopLocation(getShopLocation(seller.name));
+  }, [seller.name]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -123,7 +130,7 @@ export default function ProductDetailPage() {
 
   return (
     <>
-      <div className="mx-auto max-w-7xl px-4 py-5 pb-36 md:px-6 md:py-8 md:pb-8">
+      <div className="mx-auto max-w-7xl px-4 py-5 pb-36 md:px-6 md:py-8 lg:pb-8">
         <Link
           href="/shop"
           className="mb-5 inline-flex items-center gap-2 rounded-full border border-theme bg-surface px-4 py-2 text-sm font-medium text-theme-secondary transition-colors hover:border-primary/30 hover:text-primary"
@@ -360,6 +367,36 @@ export default function ProductDetailPage() {
                 </Link>
               </div>
             </div>
+
+            {shopLocation && (
+              <div className="overflow-hidden rounded-[2rem] border border-theme bg-surface shadow-soft">
+                <div className="flex items-center gap-2 p-6 pb-4">
+                  <Store className="h-[18px] w-[18px] text-primary" />
+                  <h2 className="text-[15px] font-bold text-theme-primary">Shop location</h2>
+                </div>
+                {/* Static map preview — tap to open the full, followable map. */}
+                <Link href={`/map/${encodeURIComponent(shopLocation.shopName)}`} className="block relative">
+                  <iframe
+                    title={`Map preview of ${shopLocation.shopName}`}
+                    src={osmEmbedUrl(shopLocation.lat, shopLocation.lng, 0.02)}
+                    className="w-full h-[150px] border-0 pointer-events-none"
+                    loading="lazy"
+                  />
+                  <span className="absolute inset-0" aria-hidden />
+                </Link>
+                <div className="flex items-center gap-3 p-6 pt-4">
+                  <MapPin className="h-4 w-4 text-theme-muted flex-shrink-0" />
+                  <p className="flex-1 text-sm text-theme-secondary truncate">{shopLocation.address}</p>
+                  <Link
+                    href={`/map/${encodeURIComponent(shopLocation.shopName)}`}
+                    className="flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-primary-hover"
+                  >
+                    <Navigation className="h-3.5 w-3.5" />
+                    View map
+                  </Link>
+                </div>
+              </div>
+            )}
           </div>
         </section>
 
@@ -532,7 +569,7 @@ export default function ProductDetailPage() {
         ) : null}
       </div>
 
-      <div className="fixed bottom-16 left-0 right-0 z-40 border-t border-theme bg-surface backdrop-blur md:hidden">
+      <div className="fixed bottom-16 left-0 right-0 z-40 border-t border-theme bg-surface backdrop-blur lg:hidden">
         <div className="flex items-center gap-2 px-4 py-3">
           <Link
             href={`/chat/${seller.id}?call=1`}

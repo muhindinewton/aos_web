@@ -21,6 +21,7 @@ import {
   MessageCircle,
   Heart
 } from 'lucide-react';
+import { usePageLoad, SkeletonList, AppErrorView } from '../../components/app-state-views';
 
 type ListingStatus = 'active' | 'pending' | 'sold' | 'expired' | 'draft';
 
@@ -120,7 +121,7 @@ const statusConfig: Record<ListingStatus, { label: string; color: string; icon: 
 const tabs: { key: ListingStatus | 'all'; label: string }[] = [
   { key: 'all', label: 'All' },
   { key: 'active', label: 'Active' },
-  { key: 'pending', label: 'Pending' },
+  { key: 'pending', label: 'Reviewing' },
   { key: 'sold', label: 'Sold' },
   { key: 'expired', label: 'Expired' },
   { key: 'draft', label: 'Drafts' },
@@ -130,8 +131,9 @@ export default function MyListingsPage() {
   const [activeTab, setActiveTab] = useState<ListingStatus | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showMenu, setShowMenu] = useState<string | null>(null);
+  const { loading, error, retry, forceEmpty } = usePageLoad();
 
-  const filteredListings = mockListings.filter(listing => {
+  const filteredListings = (forceEmpty ? [] : mockListings).filter(listing => {
     const matchesTab = activeTab === 'all' || listing.status === activeTab;
     const matchesSearch = listing.title.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesTab && matchesSearch;
@@ -145,7 +147,7 @@ export default function MyListingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-theme pb-20 md:pb-0">
+    <div className="min-h-screen bg-theme pb-20 lg:pb-0">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-surface border-b border-theme">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -220,15 +222,15 @@ export default function MyListingsPage() {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-[15px] font-semibold whitespace-nowrap transition-colors border ${
                   activeTab === tab.key
-                    ? 'bg-primary text-white'
-                    : 'bg-surface border border-theme text-theme-secondary hover:text-theme-primary'
+                    ? 'bg-primary/10 border-primary/30 text-primary'
+                    : 'bg-surface border-theme text-theme-primary hover:bg-elevated'
                 }`}
               >
                 {tab.label}
-                <span className={`px-1.5 py-0.5 text-xs rounded-full ${
-                  activeTab === tab.key ? 'bg-white/20' : 'bg-elevated'
+                <span className={`min-w-[24px] h-6 px-1.5 text-xs font-semibold rounded-full flex items-center justify-center ${
+                  activeTab === tab.key ? 'bg-primary/15 text-primary' : 'bg-elevated text-theme-muted'
                 }`}>
                   {count}
                 </span>
@@ -238,22 +240,37 @@ export default function MyListingsPage() {
         </div>
 
         {/* Listings */}
-        {filteredListings.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-elevated flex items-center justify-center">
-              <AlertCircle className="w-8 h-8 text-theme-muted" />
+        {loading ? (
+          <SkeletonList rows={5} />
+        ) : error ? (
+          <AppErrorView onRetry={retry} />
+        ) : filteredListings.length === 0 ? (
+          <div className="flex flex-col items-center text-center py-12 px-6">
+            <div className="w-52 h-52 rounded-full bg-primary/5 border border-primary/10 flex items-center justify-center">
+              <span className="text-7xl" role="img" aria-label="Empty box">📦</span>
             </div>
-            <h3 className="text-lg font-semibold text-theme-primary mb-1">No listings found</h3>
-            <p className="text-sm text-theme-secondary mb-4">
-              {searchQuery ? 'Try a different search term' : 'Start by creating your first listing'}
+            <h3 className="mt-8 text-[26px] font-bold text-theme-primary">
+              {searchQuery ? 'No listings found' : 'No Listings Yet'}
+            </h3>
+            <p className="mt-3 text-base text-theme-secondary leading-relaxed max-w-sm">
+              {searchQuery
+                ? 'Try a different search term.'
+                : "You haven't posted any ads yet. Start selling by creating your first listing!"}
             </p>
-            <Link
-              href="/sell/post"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-semibold hover:bg-primary-hover transition-colors"
-            >
-              <Plus className="w-5 h-5" />
-              Create Listing
-            </Link>
+            {!searchQuery && (
+              <>
+                <Link
+                  href="/sell/post"
+                  className="mt-8 w-full max-w-md flex items-center justify-center gap-2.5 py-4 rounded-full bg-gradient-to-r from-primary to-red-600 text-white text-lg font-semibold shadow-lg shadow-primary/25 hover:from-red-600 hover:to-primary transition-all"
+                >
+                  <Plus className="w-6 h-6 rounded-full border-2 border-white" />
+                  Post Your First Ad
+                </Link>
+                <Link href="/tips" className="mt-5 text-primary font-semibold underline underline-offset-4">
+                  Learn how to sell faster
+                </Link>
+              </>
+            )}
           </div>
         ) : (
           <div className="space-y-3">
