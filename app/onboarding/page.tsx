@@ -12,6 +12,14 @@ import {
   Check,
   Crosshair,
   X,
+  Store,
+  ShieldCheck,
+  Car,
+  Smartphone,
+  Home as HomeIcon,
+  Monitor,
+  Shirt,
+  Sofa,
 } from 'lucide-react';
 import { usePreferences, LANGUAGES, CURRENCIES, CurrencyInfo, COUNTRY_DEFAULT_CURRENCY } from '@/app/providers/preferences-provider';
 import { useLocation, COUNTRIES, Country } from '@/app/providers/location-provider';
@@ -31,6 +39,13 @@ export default function OnboardingPage() {
   const [step, setStep] = useState<Step>('welcome');
   const [openSheet, setOpenSheet] = useState<'language' | 'country' | 'currency' | null>(null);
 
+  // Deep-link a specific step (?step=language|country|currency) — used by the
+  // screenshot harness and handy for QA.
+  React.useEffect(() => {
+    const wanted = new URLSearchParams(window.location.search).get('step') as Step | null;
+    if (wanted && ORDER.includes(wanted)) setStep(wanted);
+  }, []);
+
   const currentIdx = ORDER.indexOf(step);
   const back  = () => setStep(ORDER[Math.max(0, currentIdx - 1)]);
   const next  = () => setStep(ORDER[Math.min(ORDER.length - 1, currentIdx + 1)]);
@@ -40,46 +55,98 @@ export default function OnboardingPage() {
     router.push('/');
   };
 
-  // ── Welcome step (full bleed) ────────────────────────────
+  // ── Welcome step ─────────────────────────────────────────
   if (step === 'welcome') {
     return (
-      <div className="fixed inset-0 z-50 bg-theme flex flex-col">
-        <div
-          className="flex-1 bg-cover bg-center"
-          style={{ backgroundImage: 'url(https://picsum.photos/seed/aos-welcome/900/1200)' }}
-        />
-        <div className="bg-surface rounded-t-[32px] -mt-8 px-6 pt-10 pb-12 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
-          <h1 className="text-center text-2xl font-bold text-theme-primary leading-snug">
-            Buy, Sell, and Discover Worldwide
-          </h1>
-          <p className="text-center text-sm text-theme-secondary mt-3 leading-relaxed">
-            Welcome to AOS. Join millions of users around the globe trading
-            electronics, cars, real estate, fashion, and everyday essentials.
-          </p>
-          <button
-            onClick={next}
-            className="w-full mt-7 py-4 rounded-full bg-primary text-white font-semibold hover:bg-primary-hover transition-colors"
-          >
-            Get Started
-          </button>
-          <button
-            onClick={finish}
-            className="w-full mt-2 py-2 text-theme-muted text-sm hover:text-theme-primary transition-colors"
-          >
-            Skip for now
-          </button>
+      <div className="fixed inset-0 z-50 bg-theme">
+        {/* Phone: full-bleed photo with the bottom card (mobile design) */}
+        <div className="md:hidden h-full flex flex-col">
+          <div
+            className="flex-1 bg-cover bg-center"
+            style={{ backgroundImage: 'url(https://picsum.photos/seed/aos-welcome/900/1200)' }}
+          />
+          <div className="bg-surface rounded-t-[32px] -mt-8 px-6 pt-10 pb-12 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+            <h1 className="text-center text-2xl font-bold text-theme-primary leading-snug">
+              Buy, Sell, and Discover Worldwide
+            </h1>
+            <p className="text-center text-sm text-theme-secondary mt-3 leading-relaxed">
+              Welcome to AOS. Join millions of users around the globe trading
+              electronics, cars, real estate, fashion, and everyday essentials.
+            </p>
+            <button
+              onClick={next}
+              className="w-full mt-7 py-4 rounded-full bg-primary text-white font-semibold hover:bg-primary-hover transition-colors"
+            >
+              Get Started
+            </button>
+            <button
+              onClick={finish}
+              className="w-full mt-2 py-2 text-theme-muted text-sm hover:text-theme-primary transition-colors"
+            >
+              Skip for now
+            </button>
+          </div>
+        </div>
+
+        {/* Tablet & desktop: split screen — brand panel + focused content */}
+        <div className="hidden md:flex h-full">
+          <BrandPanel />
+
+          {/* Content panel */}
+          <div className="flex-1 flex items-center justify-center p-10 lg:p-16">
+            <div className="w-full max-w-md">
+              <h1 className="text-3xl lg:text-4xl font-bold text-theme-primary leading-tight [text-wrap:balance]">
+                Buy, Sell, and Discover Worldwide
+              </h1>
+              <p className="text-[15px] text-theme-secondary mt-4 leading-relaxed">
+                Welcome to AOS. Join millions of users around the globe trading
+                electronics, cars, real estate, fashion, and everyday essentials.
+              </p>
+              <ul className="mt-7 space-y-3">
+                {[
+                  'Chat, call and negotiate with sellers directly',
+                  'Sell in minutes with photos or short videos',
+                  'Local prices in your currency and language',
+                ].map(line => (
+                  <li key={line} className="flex items-start gap-3 text-sm text-theme-primary">
+                    <span className="mt-0.5 w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Check className="w-3 h-3 text-primary" />
+                    </span>
+                    {line}
+                  </li>
+                ))}
+              </ul>
+              <button
+                onClick={next}
+                className="w-full lg:w-auto lg:px-14 mt-9 py-4 rounded-full bg-primary text-white font-semibold hover:bg-primary-hover transition-colors"
+              >
+                Get Started
+              </button>
+              <button
+                onClick={finish}
+                className="block w-full lg:w-auto lg:px-6 mt-3 py-2 text-theme-muted text-sm hover:text-theme-primary transition-colors text-center lg:text-left"
+              >
+                Skip for now
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-theme flex flex-col">
+    <div className="fixed inset-0 z-50 bg-theme flex">
+      {/* Brand panel stays put through the whole flow on md+ */}
+      <BrandPanel />
+
+      <div className="flex-1 flex flex-col min-w-0">
       {/* Top bar */}
-      <div className="px-6 pt-6 pb-2 flex items-center gap-3">
+      <div className="px-6 pt-6 pb-2 flex items-center gap-3 max-w-xl w-full mx-auto">
         <button
           onClick={back}
           className="w-10 h-10 rounded-xl bg-surface border border-theme flex items-center justify-center"
+          aria-label="Back"
         >
           <ArrowLeft className="w-4 h-4 text-theme-primary" />
         </button>
@@ -95,7 +162,7 @@ export default function OnboardingPage() {
       </div>
 
       {/* Step content */}
-      <div className="flex-1 px-6 pt-6 pb-4 overflow-y-auto max-w-xl w-full mx-auto">
+      <div className="flex-1 px-6 pt-6 pb-4 overflow-y-auto max-w-xl w-full mx-auto md:flex md:flex-col md:justify-center">
         {step === 'language' && (() => {
           const selectedLang = LANGUAGES.find(l => l.name === language);
           return (
@@ -219,6 +286,61 @@ export default function OnboardingPage() {
           onClose={() => setOpenSheet(null)}
         />
       )}
+      </div>
+    </div>
+  );
+}
+
+// ── Brand panel (left half on md+, shared by every step) ──
+function BrandPanel() {
+  return (
+    <div className="hidden md:flex relative w-1/2 lg:w-[55%] overflow-hidden bg-gradient-to-br from-primary via-[#A50F1A] to-[#6E0A11] text-white flex-col justify-between p-10 lg:p-14">
+      {/* Soft light accents */}
+      <div className="absolute -top-32 -left-24 w-96 h-96 rounded-full bg-white/10 blur-3xl" aria-hidden />
+      <div className="absolute -bottom-40 right-0 w-[28rem] h-[28rem] rounded-full bg-black/20 blur-3xl" aria-hidden />
+
+      {/* Wordmark */}
+      <div className="relative flex items-center gap-3">
+        <div className="w-11 h-11 rounded-2xl bg-white flex items-center justify-center">
+          <Store className="w-[22px] h-[22px] text-primary" />
+        </div>
+        <div>
+          <p className="text-lg font-bold leading-tight">AOS</p>
+          <p className="text-[10px] tracking-[0.22em] uppercase text-white/70 font-medium">Africa Online Space</p>
+        </div>
+      </div>
+
+      {/* Headline + category tiles */}
+      <div className="relative">
+        <h2 className="text-3xl lg:text-[40px] font-bold leading-tight max-w-md [text-wrap:balance]">
+          Africa&apos;s marketplace, open to the world.
+        </h2>
+        <div className="mt-8 grid grid-cols-3 gap-3 max-w-md">
+          {[
+            { icon: Car, label: 'Vehicles' },
+            { icon: Smartphone, label: 'Phones' },
+            { icon: HomeIcon, label: 'Property' },
+            { icon: Monitor, label: 'Electronics' },
+            { icon: Shirt, label: 'Fashion' },
+            { icon: Sofa, label: 'Furniture' },
+          ].map(({ icon: Icon, label }) => (
+            <div
+              key={label}
+              className="flex flex-col items-center gap-2 rounded-2xl bg-white/10 border border-white/15 backdrop-blur-sm py-4"
+            >
+              <Icon className="w-5 h-5 text-white" />
+              <span className="text-xs font-medium text-white/85">{label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Trust row */}
+      <div className="relative flex items-center gap-6 text-xs text-white/75">
+        <span className="flex items-center gap-1.5"><Store className="w-3.5 h-3.5" /> 1M+ listings</span>
+        <span className="flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> Buyer Protection</span>
+        <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> 54 countries</span>
+      </div>
     </div>
   );
 }

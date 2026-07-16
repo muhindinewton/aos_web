@@ -57,7 +57,7 @@ Account ─┬─ profile card ── /account/profile (the ONE profile page)
          ├─ Security · Notification prefs · App prefs · Dark mode · Delete account
          └─ Delete flow: /account/delete → sign-out → /auth/restore (30-day window)
 
-Auth: /auth/login ⇄ /auth/signup · /auth/forgot-password · /auth/restore · /onboarding
+Auth: /auth/login ⇄ /auth/signup ── OTP email ── /auth/verify · /auth/forgot-password · /auth/restore · /onboarding
 ```
 
 ## Interactions the stills can't show

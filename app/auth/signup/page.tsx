@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ChevronLeft, Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 import { useAuth } from '../../providers/auth-provider';
 import { useLocation } from '../../providers/location-provider';
+import { sendVerificationOTP } from '../../lib/otp-service';
 
 export default function SignupPage() {
   const [name, setName] = useState('');
@@ -35,7 +36,12 @@ export default function SignupPage() {
         countryCode: country.code,
         countryName: country.name,
       });
-      router.push('/');
+      // Email ownership check, like mobile: send a one-time code and finish
+      // on the verify screen. A failed send isn't fatal — the verify page
+      // has Resend.
+      try { sessionStorage.setItem('aos-pending-verify-email', email); } catch { /* ignore */ }
+      try { await sendVerificationOTP(email); } catch { /* user can hit Resend */ }
+      router.push('/auth/verify');
     } catch (err) {
       setError(errorMessage(err));
     } finally {

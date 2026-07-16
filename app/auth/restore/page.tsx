@@ -106,7 +106,7 @@ export default function RestoreAccountPage() {
               onKeyDown={e => onKeyDown(i, e)}
               inputMode="numeric"
               maxLength={1}
-              className="flex-1 h-[55px] bg-surface border border-theme rounded-xl text-center text-[22px] font-semibold text-theme-primary outline-none focus:border-theme-primary focus:border-2"
+              className="flex-1 min-w-0 h-[55px] bg-surface border border-theme rounded-xl text-center text-[22px] font-semibold text-theme-primary outline-none focus:border-theme-primary focus:border-2"
               aria-label={`Digit ${i + 1}`}
             />
           ))}

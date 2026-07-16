@@ -66,7 +66,11 @@ const ROUTES = [
   { slug: '36-login',               path: '/auth/login' },
   { slug: '37-signup',              path: '/auth/signup' },
   { slug: '38-forgot-password',     path: '/auth/forgot-password' },
+  { slug: '38b-verify-email',       path: '/auth/verify' },
   { slug: '39-onboarding',          path: '/onboarding' },
+  { slug: '39b-onboarding-language', path: '/onboarding?step=language' },
+  { slug: '39c-onboarding-country',  path: '/onboarding?step=country' },
+  { slug: '39d-onboarding-currency', path: '/onboarding?step=currency' },
   { slug: '40-sell-hub',            path: '/sell' },
   { slug: '41-sell-post',           path: '/sell/post' },
   { slug: '42-sell-listings',       path: '/sell/listings', stateful: true },
@@ -82,6 +86,12 @@ const ROUTES = [
 ];
 
 const STATE_PARAMS = { loading: '__state=loading', error: '__state=error', empty: '__state=empty' };
+
+// ONLY=<slug substring> captures a subset — for adding one new page without a
+// full re-run, e.g.:  ONLY=verify-email node scripts/screenshots.mjs
+const ROUTES_TO_RUN = process.env.ONLY
+  ? ROUTES.filter(r => r.slug.includes(process.env.ONLY))
+  : ROUTES;
 
 const withParam = (p, q) => (p.includes('?') ? `${p}&${q}` : `${p}?${q}`);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -174,6 +184,8 @@ async function main() {
       try {
         sessionStorage.setItem('aos_splash_seen', 'true');
         sessionStorage.setItem('aos-screenshot-mode', '1');
+        // Lets /auth/verify render instead of bouncing back to signup.
+        sessionStorage.setItem('aos-pending-verify-email', 'newton@example.com');
         localStorage.setItem('aos-theme', theme);
       } catch {}
     }, THEME);
@@ -185,7 +197,7 @@ async function main() {
     }
 
     console.log(`\n── ${vpName} (${viewport.width}×${viewport.height}) ──`);
-    for (const route of ROUTES) {
+    for (const route of ROUTES_TO_RUN) {
       // Content state — give usePageLoad's 700ms fetch time to settle.
       // Pages taller than the viewport also get a stitched full-page shot.
       await capture(
