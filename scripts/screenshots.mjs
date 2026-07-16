@@ -45,6 +45,7 @@ const ROUTES = [
   { slug: '15-followers-following', path: '/feed/followers/me' },
   { slug: '16-connect-chats',       path: '/chat', stateful: true },
   { slug: '17-connect-calls',       path: '/calls', stateful: true },
+  { slug: '17b-chat-settings',      path: '/chat/settings' },
   { slug: '18-chat-detail',         path: '/chat/1' },
   { slug: '19-chat-profile',        path: '/chat/1/profile' },
   { slug: '20-new-chat',            path: '/chat/new', stateful: true },

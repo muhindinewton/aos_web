@@ -28,10 +28,15 @@ export const DARK_PRESETS = [
 
 const KEY_PREFIX = 'aos-chat-wallpaper:';
 
+// App-wide default wallpaper (set from Chat Settings); per-chat picks win.
+export const DEFAULT_WALLPAPER_KEY = '__default__';
+
 export function getWallpaper(chatKey: string): ChatWallpaper {
   if (typeof window === 'undefined') return { kind: 'default' };
   try {
-    const raw = window.localStorage.getItem(KEY_PREFIX + chatKey);
+    const raw =
+      window.localStorage.getItem(KEY_PREFIX + chatKey) ??
+      window.localStorage.getItem(KEY_PREFIX + DEFAULT_WALLPAPER_KEY);
     if (!raw) return { kind: 'default' };
     return JSON.parse(raw) as ChatWallpaper;
   } catch {

@@ -8,8 +8,9 @@ import {
   PhoneIncoming, PhoneOutgoing, PhoneMissed,
   MicOff, Mic, Volume2, VolumeX, PhoneOff, Video, VideoOff,
   Plus, X, User, ImageIcon, ChevronLeft, ChevronRight,
-  Menu, MailCheck, Star, Settings, Pin, Check, CheckCheck,
+  Menu, MailCheck, Star, Settings, Pin, Check, CheckCheck, Trash2,
 } from 'lucide-react';
+import { useToast } from '../providers/toast-provider';
 import { callLogs as CALL_LOGS } from '../lib/data';
 import type { CallLog, CallType } from '../types';
 import { SkeletonList, AppErrorView, usePageLoad } from '../components/app-state-views';
@@ -324,6 +325,8 @@ export default function ContactPage() {
   const [activeCall,  setActiveCall]  = useState<ActiveCall | null>(null);
   const [chats,       setChats]       = useState<ChatItem[]>(SEED_CHATS);
   const [menuOpen,    setMenuOpen]    = useState(false);
+  const [callsCleared, setCallsCleared] = useState(false);
+  const { showToast } = useToast();
 
   /* ── stories state ── */
   const [stories,      setStories]      = useState<Story[]>(SEED_STORIES);
@@ -343,7 +346,7 @@ export default function ContactPage() {
   }, []);
 
   /* ── filtered calls ── */
-  const filteredCalls = (forceEmpty ? [] : CALL_LOGS).filter(c => {
+  const filteredCalls = (forceEmpty || callsCleared ? [] : CALL_LOGS).filter(c => {
     const matchSearch = c.name.toLowerCase().includes(search.toLowerCase());
     const matchFilter = callFilter === 'All'
       || (callFilter === 'Missed'   && c.type === 'missed')
@@ -406,13 +409,28 @@ export default function ContactPage() {
               <>
                 <div className="fixed inset-0 z-30" onClick={() => setMenuOpen(false)} />
                 <div className="absolute right-0 top-11 w-52 bg-surface border border-theme rounded-xl shadow-2xl overflow-hidden z-40 py-1">
-                  <button onClick={markAllRead} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-theme-primary hover:bg-elevated transition-colors">
-                    <MailCheck className="w-4 h-4 text-theme-muted" /> Mark all read
-                  </button>
-                  <button onClick={() => setMenuOpen(false)} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-theme-primary hover:bg-elevated transition-colors">
-                    <Star className="w-4 h-4 text-theme-muted" /> Starred messages
-                  </button>
-                  <Link href="/account/settings" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-theme-primary hover:bg-elevated transition-colors">
+                  {/* The menu adapts to the active tab, like mobile. */}
+                  {navIndex === 0 ? (
+                    <>
+                      <button onClick={markAllRead} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-theme-primary hover:bg-elevated transition-colors">
+                        <MailCheck className="w-4 h-4 text-theme-muted" /> Mark all read
+                      </button>
+                      <button
+                        onClick={() => { setMenuOpen(false); showToast('No starred messages yet'); }}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-theme-primary hover:bg-elevated transition-colors"
+                      >
+                        <Star className="w-4 h-4 text-theme-muted" /> Starred messages
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => { setCallsCleared(true); setMenuOpen(false); showToast('Call log cleared'); }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-theme-primary hover:bg-elevated transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4 text-theme-muted" /> Clear call log
+                    </button>
+                  )}
+                  <Link href="/chat/settings" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-theme-primary hover:bg-elevated transition-colors">
                     <Settings className="w-4 h-4 text-theme-muted" /> Settings
                   </Link>
                 </div>
