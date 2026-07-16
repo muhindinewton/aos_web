@@ -21,7 +21,7 @@ import {
   Shield,
   Menu,
   X,
-  Store,
+
   LayoutGrid,
   UserCircle,
   Car,
@@ -111,8 +111,9 @@ export function Navbar() {
             <div className="flex items-center gap-6 h-[68px]">
               {/* Logo */}
               <Link href="/" className="flex items-center gap-2.5 shrink-0">
-                <div className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center">
-                  <Store className="w-[18px] h-[18px] text-white" />
+                <div className="w-9 h-9 bg-[#17181C] rounded-xl flex items-center justify-center p-1">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/aos-logo.png" alt="AOS logo" className="w-full h-full object-contain" />
                 </div>
                 <span className="text-xl font-bold text-theme-primary tracking-tight">AOS</span>
               </Link>
@@ -326,8 +327,9 @@ export function Navbar() {
         <div className="bg-surface border-b border-theme px-4 py-2.5">
           <div className="flex items-center gap-3">
             <Link href="/" className="flex items-center gap-2 shrink-0">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary to-red-600 rounded-lg flex items-center justify-center">
-                <Store className="w-4 h-4 text-white" />
+              <div className="w-8 h-8 bg-[#17181C] rounded-lg flex items-center justify-center p-0.5">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/aos-logo.png" alt="AOS logo" className="w-full h-full object-contain" />
               </div>
               <span className="text-base font-bold text-theme-primary">AOS</span>
             </Link>

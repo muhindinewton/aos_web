@@ -50,8 +50,13 @@ export default function DeleteAccountPage() {
     }
 
     // Schedule deletion (reversible within the grace period) and sign out.
+    // The record is tied to this account's email so the restore prompt only
+    // ever appears for the account that was actually deleted.
     try {
-      window.localStorage.setItem(DELETED_AT_KEY, String(Date.now()));
+      window.localStorage.setItem(
+        DELETED_AT_KEY,
+        JSON.stringify({ email: (user?.email ?? '').toLowerCase(), at: Date.now() }),
+      );
     } catch { /* storage unavailable */ }
     await logout();
     showToast(`Account scheduled for deletion. Log in within ${RESTORE_DAYS} days to restore it.`);

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Mail, Lock, Eye, EyeOff, CheckCircle, AlertCircle } from 'lucide-react';
-import { useAuth } from '../../providers/auth-provider';
+import { sendPasswordResetOTP, resetPasswordWithOTP } from '../../lib/otp-service';
 
 type Step = 'email' | 'otp' | 'password' | 'success';
 
@@ -17,16 +17,26 @@ export default function ForgotPasswordPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const { sendPasswordReset, errorMessage } = useAuth();
+
+  // Fills all boxes from a pasted/typed multi-digit string.
+  const fillOtp = (raw: string) => {
+    const clean = raw.replace(/\D/g, '').slice(0, 6);
+    if (!clean) return;
+    const next = ['', '', '', '', '', ''];
+    clean.split('').forEach((c, idx) => { next[idx] = c; });
+    setOtp(next);
+    document.getElementById(`otp-${Math.min(clean.length, 5)}`)?.focus();
+  };
 
   const handleOtpChange = (index: number, value: string) => {
-    if (value.length > 1) return;
+    const cleaned = value.replace(/\D/g, '');
+    if (cleaned.length > 1) { fillOtp(cleaned); return; }
     const newOtp = [...otp];
-    newOtp[index] = value;
+    newOtp[index] = cleaned;
     setOtp(newOtp);
-    
+
     // Auto-focus next input
-    if (value && index < 5) {
+    if (cleaned && index < 5) {
       const nextInput = document.getElementById(`otp-${index + 1}`);
       nextInput?.focus();
     }
@@ -50,13 +60,11 @@ export default function ForgotPasswordPage() {
 
     setIsLoading(true);
     try {
-      // Firebase handles the reset via an email link, not an OTP — so we
-      // skip the OTP/new-password steps and jump straight to the success
-      // state. The link in the email is what actually resets the password.
-      await sendPasswordReset(email);
-      setStep('success');
-    } catch (err) {
-      setError(errorMessage(err));
+      // Emails a 6-digit reset code (Cloud Function; mobile parity).
+      await sendPasswordResetOTP(email.trim());
+      setStep('otp');
+    } catch {
+      setError("Couldn't send the code. Check your connection and try again.");
     } finally {
       setIsLoading(false);
     }
@@ -65,17 +73,15 @@ export default function ForgotPasswordPage() {
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    
+
     const otpCode = otp.join('');
     if (otpCode.length !== 6) {
       setError('Please enter the complete 6-digit code');
       return;
     }
 
-    setIsLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setIsLoading(false);
+    // The code is checked authoritatively when the new password is submitted
+    // (resetPasswordWithOTP), so this step just advances.
     setStep('password');
   };
 
@@ -97,10 +103,21 @@ export default function ForgotPasswordPage() {
     }
 
     setIsLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setIsLoading(false);
-    setStep('success');
+    try {
+      // Verifies the code and sets the new password server-side.
+      await resetPasswordWithOTP(email.trim(), otp.join(''), password);
+      setStep('success');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Could not reset your password. Please try again.';
+      setError(message);
+      // Bad or expired code — return to the code step to retry.
+      if (message.toLowerCase().includes('code')) {
+        setOtp(['', '', '', '', '', '']);
+        setStep('otp');
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleBack = () => {
@@ -205,6 +222,7 @@ export default function ForgotPasswordPage() {
                       value={digit}
                       onChange={(e) => handleOtpChange(index, e.target.value.replace(/\D/g, ''))}
                       onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                      onPaste={(e) => { e.preventDefault(); fillOtp(e.clipboardData.getData('text')); }}
                       className="w-12 h-14 bg-elevated border border-theme rounded-xl text-center text-xl font-semibold text-theme-primary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                     />
                   ))}

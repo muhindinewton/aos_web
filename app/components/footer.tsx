@@ -8,7 +8,13 @@ export function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           {/* About */}
           <div className="col-span-2 md:col-span-1">
-            <h3 className="text-lg font-bold text-primary mb-3">Africa Online Space</h3>
+            <div className="flex items-center gap-2.5 mb-3">
+              <div className="w-9 h-9 rounded-xl bg-[#17181C] flex items-center justify-center p-1 flex-shrink-0">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/aos-logo.png" alt="AOS logo" className="w-full h-full object-contain" />
+              </div>
+              <h3 className="text-lg font-bold text-primary">Africa Online Space</h3>
+            </div>
             <p className="text-sm text-theme-muted leading-relaxed">
               Buy and sell anything across Africa. The largest marketplace for new and used items.
             </p>

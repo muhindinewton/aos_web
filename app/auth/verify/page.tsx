@@ -34,17 +34,20 @@ export default function VerifyEmailPage() {
     return () => clearInterval(t);
   }, [cooldown]);
 
+  // Fills all boxes from a pasted/typed multi-digit string.
+  const fillCode = (raw: string) => {
+    const clean = raw.replace(/\D/g, '').slice(0, 6);
+    if (!clean) return;
+    const next = Array(6).fill('');
+    clean.split('').forEach((c, idx) => { next[idx] = c; });
+    setDigits(next);
+    setError(null);
+    inputsRef.current[Math.min(clean.length, 5)]?.focus();
+  };
+
   const setDigit = (i: number, val: string) => {
-    // Support pasting the whole code into any box
     const clean = val.replace(/\D/g, '');
-    if (clean.length > 1) {
-      const next = Array(6).fill('');
-      clean.slice(0, 6).split('').forEach((c, idx) => { next[idx] = c; });
-      setDigits(next);
-      inputsRef.current[Math.min(clean.length, 5)]?.focus();
-      setError(null);
-      return;
-    }
+    if (clean.length > 1) { fillCode(clean); return; }
     setDigits(prev => prev.map((d, idx) => (idx === i ? clean : d)));
     setError(null);
     if (clean && i < 5) inputsRef.current[i + 1]?.focus();
@@ -133,6 +136,7 @@ export default function VerifyEmailPage() {
               value={d}
               onChange={e => setDigit(i, e.target.value)}
               onKeyDown={e => onKeyDown(i, e)}
+              onPaste={e => { e.preventDefault(); fillCode(e.clipboardData.getData('text')); }}
               inputMode="numeric"
               autoComplete={i === 0 ? 'one-time-code' : 'off'}
               className="flex-1 h-[55px] min-w-0 bg-surface border border-theme rounded-xl text-center text-[22px] font-semibold text-theme-primary outline-none focus:border-theme-primary focus:border-2"

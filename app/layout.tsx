@@ -14,6 +14,7 @@ import { PageShell } from './components/page-shell';
 export const metadata: Metadata = {
   title: 'AOS - Africa Online Space',
   description: 'Buy and sell anything in Africa',
+  icons: { icon: '/aos-logo.png', apple: '/aos-logo.png' },
 };
 
 export default function RootLayout({

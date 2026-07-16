@@ -15,15 +15,31 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState<'google' | 'apple' | null>(null);
-  const [pendingDeletion, setPendingDeletion] = useState(false);
+  // Email of the account scheduled for deletion, if any. The restore banner
+  // only shows when the person is logging into THAT account.
+  const [deletedEmail, setDeletedEmail] = useState<string | null>(null);
 
   useEffect(() => {
     try {
-      setPendingDeletion(Boolean(window.localStorage.getItem(DELETED_AT_KEY)));
-    } catch { /* storage unavailable */ }
+      const raw = window.localStorage.getItem(DELETED_AT_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object' && parsed.email) {
+        setDeletedEmail(String(parsed.email).toLowerCase());
+      } else {
+        // Legacy bare-timestamp record with no account attached — discard it
+        // rather than nag every visitor.
+        window.localStorage.removeItem(DELETED_AT_KEY);
+      }
+    } catch {
+      try { window.localStorage.removeItem(DELETED_AT_KEY); } catch { /* ignore */ }
+    }
   }, []);
   const { login, loginWithGoogle, loginWithApple, errorMessage } = useAuth();
   const router = useRouter();
+
+  const pendingDeletion =
+    deletedEmail !== null && email.trim().toLowerCase() === deletedEmail;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,7 +48,13 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       await login(email, password);
-      router.push('/');
+      // Logging into a scheduled-for-deletion account goes through the
+      // restore flow (mobile behaviour) instead of straight into the app.
+      if (pendingDeletion) {
+        router.push('/auth/restore');
+      } else {
+        router.push('/');
+      }
     } catch (err) {
       setError(errorMessage(err));
     } finally {

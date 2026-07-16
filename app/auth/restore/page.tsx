@@ -18,21 +18,39 @@ export default function RestoreAccountPage() {
   const [daysRemaining, setDaysRemaining] = useState(RESTORE_DAYS);
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
 
+  const [deletedEmail, setDeletedEmail] = useState<string | null>(null);
+
   useEffect(() => {
     try {
-      const deletedAt = Number(window.localStorage.getItem(DELETED_AT_KEY) || 0);
-      if (deletedAt) {
-        const elapsed = Math.floor((Date.now() - deletedAt) / 86_400_000);
+      const raw = window.localStorage.getItem(DELETED_AT_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      const at = parsed && typeof parsed === 'object' ? Number(parsed.at) : Number(raw);
+      if (parsed?.email) setDeletedEmail(String(parsed.email));
+      if (at) {
+        const elapsed = Math.floor((Date.now() - at) / 86_400_000);
         setDaysRemaining(Math.max(RESTORE_DAYS - elapsed, 0));
       }
     } catch { /* storage unavailable */ }
   }, []);
 
-  const setDigit = (i: number, val: string) => {
-    const v = val.replace(/\D/g, '').slice(-1);
-    setDigits(prev => prev.map((d, idx) => (idx === i ? v : d)));
+  // Fills all boxes from a pasted/typed multi-digit string.
+  const fillCode = (raw: string) => {
+    const clean = raw.replace(/\D/g, '').slice(0, 6);
+    if (!clean) return;
+    const next = Array(6).fill('');
+    clean.split('').forEach((c, idx) => { next[idx] = c; });
+    setDigits(next);
     setError(null);
-    if (v && i < 5) inputsRef.current[i + 1]?.focus();
+    inputsRef.current[Math.min(clean.length, 5)]?.focus();
+  };
+
+  const setDigit = (i: number, val: string) => {
+    const cleaned = val.replace(/\D/g, '');
+    if (cleaned.length > 1) { fillCode(cleaned); return; }
+    setDigits(prev => prev.map((d, idx) => (idx === i ? cleaned : d)));
+    setError(null);
+    if (cleaned && i < 5) inputsRef.current[i + 1]?.focus();
   };
 
   const onKeyDown = (i: number, e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -87,7 +105,9 @@ export default function RestoreAccountPage() {
         </span>
 
         <p className="text-sm text-theme-secondary mt-4 text-center">Enter the 6-digit code we sent to</p>
-        <p className="text-sm font-semibold text-theme-primary mt-0.5">your email address</p>
+        <p className="text-sm font-semibold text-theme-primary mt-0.5 break-all text-center">
+          {deletedEmail || 'your email address'}
+        </p>
 
         {error && (
           <div className="w-full mt-6 p-3 rounded-lg bg-red-500/10 border border-red-500/25">
@@ -104,6 +124,7 @@ export default function RestoreAccountPage() {
               value={d}
               onChange={e => setDigit(i, e.target.value)}
               onKeyDown={e => onKeyDown(i, e)}
+              onPaste={e => { e.preventDefault(); fillCode(e.clipboardData.getData('text')); }}
               inputMode="numeric"
               maxLength={1}
               className="flex-1 min-w-0 h-[55px] bg-surface border border-theme rounded-xl text-center text-[22px] font-semibold text-theme-primary outline-none focus:border-theme-primary focus:border-2"

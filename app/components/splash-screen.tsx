@@ -49,7 +49,7 @@ function LogoImage() {
   }
   return (
     <img
-      src="/logo_redone.png"
+      src="/aos-logo.png"
       alt="AOS"
       onError={() => setFailed(true)}
       style={{ width: '100%', height: '100%', objectFit: 'contain' }}
@@ -291,7 +291,9 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
             width:        115,
             height:       115,
             borderRadius: 26,
-            background:   'white',
+            // Dark neutral so every element of the logo (white outline, red
+            // basket, green S) stays legible.
+            background:   '#17181C',
             display:      'flex',
             alignItems:   'center',
             justifyContent: 'center',

@@ -301,8 +301,9 @@ function BrandPanel() {
 
       {/* Wordmark */}
       <div className="relative flex items-center gap-3">
-        <div className="w-11 h-11 rounded-2xl bg-white flex items-center justify-center">
-          <Store className="w-[22px] h-[22px] text-primary" />
+        <div className="w-12 h-12 rounded-2xl bg-[#17181C] border border-white/15 flex items-center justify-center p-1">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/aos-logo.png" alt="AOS logo" className="w-full h-full object-contain" />
         </div>
         <div>
           <p className="text-lg font-bold leading-tight">AOS</p>

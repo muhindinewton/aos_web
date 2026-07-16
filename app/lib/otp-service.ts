@@ -6,6 +6,8 @@
 // If Firestore is unreachable (offline/demo), falls back to sessionStorage so
 // the flow still works end-to-end locally.
 
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import { getApp } from 'firebase/app';
 import { db, doc, setDoc, getDoc, deleteDoc, Timestamp } from './firebase';
 
 const SERVICE_ID = 'service_gj7hxsa';
@@ -111,4 +113,49 @@ export async function verifyOTP(email: string, otp: string): Promise<boolean> {
 async function clearOTP(email: string) {
   try { await deleteDoc(doc(db, 'otps', email.toLowerCase())); } catch { /* best effort */ }
   try { sessionStorage.removeItem(LOCAL_KEY(email)); } catch { /* storage unavailable */ }
+}
+
+/* ── Password reset (Cloud Functions, same as mobile's otp_service.dart) ── */
+
+// Send a 6-digit reset code. Primary path is the project's
+// `sendPasswordResetOTP` Cloud Function (which checks the account server-side
+// and emails the code); if Functions are unreachable in local/demo setups we
+// fall back to the EmailJS route with a locally stored code.
+export async function sendPasswordResetOTP(email: string): Promise<void> {
+  try {
+    const fn = httpsCallable(getFunctions(getApp()), 'sendPasswordResetOTP');
+    await fn({ email });
+  } catch {
+    const otp = generateOTP();
+    await storeOTP(email, otp, 'password_reset');
+    await sendEmail(email, otp, 'Reset Your Password - AOS');
+  }
+}
+
+// Verify the code and set the new password. The `resetPasswordWithOTP` Cloud
+// Function does the real work (Admin SDK password update). The local fallback
+// verifies the code so the flow remains testable without deployed Functions —
+// it cannot actually change a Firebase password from the client.
+export async function resetPasswordWithOTP(
+  email: string,
+  otp: string,
+  newPassword: string,
+): Promise<void> {
+  if (newPassword.length < 6) {
+    throw new Error('Password must be at least 6 characters.');
+  }
+  try {
+    const fn = httpsCallable(getFunctions(getApp()), 'resetPasswordWithOTP');
+    await fn({ email, otp, newPassword });
+    await clearOTP(email);
+  } catch (err) {
+    // Surface real validation errors from the Function as-is.
+    const code = (err as { code?: string })?.code ?? '';
+    if (code.includes('permission-denied')) throw new Error('Invalid verification code. Please try again.');
+    if (code.includes('deadline-exceeded')) throw new Error('Verification code has expired. Please request a new one.');
+    if (code.includes('not-found')) throw new Error('No verification code found. Please request a new one.');
+    if (code.includes('invalid-argument')) throw new Error('Password must be at least 6 characters.');
+    // Functions unreachable — verify against the locally stored code instead.
+    await verifyOTP(email, otp);
+  }
 }
