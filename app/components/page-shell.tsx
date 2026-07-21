@@ -9,5 +9,7 @@ import { CONNECT_ROUTES } from './bottom-nav';
 export function PageShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const fullBleed = CONNECT_ROUTES.includes(pathname);
-  return <main className={fullBleed ? 'pb-0' : 'pb-20 lg:pb-0'}>{children}</main>;
+  // flex-1 makes short pages absorb the leftover height, which is what keeps the
+  // footer pinned to the bottom of the viewport (see AppWrapper's flex column).
+  return <main className={`flex-1 ${fullBleed ? 'pb-0' : 'pb-20 lg:pb-0'}`}>{children}</main>;
 }

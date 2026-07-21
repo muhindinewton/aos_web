@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Search, X, TrendingUp, Mic, Camera, ArrowLeft } from 'lucide-react';
 import { products, categories } from '../lib/data';
 import { ProductCard } from '../components/product-card';
@@ -12,9 +12,28 @@ const trendingSearches = ['iPhone 15', 'Toyota', 'Apartment Nairobi', 'PS5', 'La
 const initialRecentSearches = ['Apple Watch 5', 'Suitcase Arrow', 'iPhone Case', 'Patch Sneaker'];
 
 export default function SearchPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center py-20"><p className="text-theme-muted">Loading...</p></div>}>
+      <SearchContent />
+    </Suspense>
+  );
+}
+
+function SearchContent() {
   const router = useRouter();
-  const [query, setQuery] = useState('');
+  const searchParams = useSearchParams();
+  // Derived from ?q=, not local state — the header owns the input, so the URL
+  // is the single source of truth for what's being searched. Picking a recent
+  // or trending term navigates, which updates both this page and the header box.
+  const query = searchParams.get('q') ?? '';
+  const runSearch = (term: string) =>
+    router.push(term ? `/search?q=${encodeURIComponent(term)}` : '/search');
   const [recentSearches, setRecentSearches] = useState(initialRecentSearches);
+
+  // What's typed in the mobile box before submitting. Re-seeded whenever the
+  // committed query changes, so trending taps and back/forward stay in sync.
+  const [draft, setDraft] = useState(query);
+  useEffect(() => { setDraft(query); }, [query]);
   const { loading, error, retry } = usePageLoad();
 
   const filtered = query.length >= 2
@@ -25,15 +44,8 @@ export default function SearchPage() {
       )
     : [];
 
-  const handleVoiceSearch = () => router.push('/search/voice');
-  const handleImageSearch = () => router.push('/search/image');
-
   const removeRecentSearch = (term: string) => {
     setRecentSearches(prev => prev.filter(s => s !== term));
-  };
-
-  const handleRecentClick = (term: string) => {
-    setQuery(term);
   };
 
   return (
@@ -50,41 +62,53 @@ export default function SearchPage() {
         <h1 className="text-xl sm:text-[26px] font-bold text-theme-primary">Search</h1>
       </div>
 
-      {/* Search Input */}
-      <div className="relative mb-6">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-theme-muted" />
+      {/* Mobile-only search box. The header's search bar is `hidden lg:block`,
+          so below lg this is the only way to type a query — but on desktop it
+          would duplicate the header, hence lg:hidden. */}
+      <form
+        onSubmit={e => { e.preventDefault(); runSearch(draft.trim()); }}
+        className="relative mb-6 lg:hidden"
+      >
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-theme-muted pointer-events-none" />
         <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          type="search"
+          value={draft}
+          onChange={e => setDraft(e.target.value)}
           placeholder="Search products, categories, locations..."
-          autoFocus
-          className="w-full bg-surface border border-theme rounded-xl py-3.5 pl-12 pr-28 text-theme-primary placeholder:text-theme-muted outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 text-sm"
+          aria-label="Search"
+          className="w-full bg-surface border border-theme rounded-xl py-3.5 pl-12 pr-28 text-theme-primary placeholder:text-theme-muted outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 text-sm [&::-webkit-search-cancel-button]:hidden"
         />
         <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
-          {query && (
-            <button onClick={() => setQuery('')} className="w-7 h-7 rounded-full bg-elevated flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+          {draft && (
+            <button
+              type="button"
+              onClick={() => { setDraft(''); router.push('/search'); }}
+              aria-label="Clear search"
+              className="w-7 h-7 rounded-full bg-elevated flex items-center justify-center hover:bg-theme-muted/20 transition-colors"
+            >
               <X className="w-4 h-4 text-theme-muted" />
             </button>
           )}
           <button
-            onClick={handleVoiceSearch}
-            className="w-10 h-9 rounded-xl flex items-center justify-center transition-colors bg-elevated hover:bg-gray-200 dark:hover:bg-gray-700 text-theme-secondary"
-            title="Voice search"
+            type="button"
+            onClick={() => router.push('/search/voice')}
+            aria-label="Voice search"
+            className="w-10 h-9 rounded-xl bg-elevated flex items-center justify-center hover:bg-theme-muted/20 transition-colors text-theme-secondary"
           >
             <Mic className="w-[18px] h-[18px]" />
           </button>
           <button
-            onClick={handleImageSearch}
-            className="w-10 h-9 rounded-xl bg-elevated flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-theme-secondary"
-            title="Image search"
+            type="button"
+            onClick={() => router.push('/search/image')}
+            aria-label="Image search"
+            className="w-10 h-9 rounded-xl bg-elevated flex items-center justify-center hover:bg-theme-muted/20 transition-colors text-theme-secondary"
           >
             <Camera className="w-[18px] h-[18px]" />
           </button>
         </div>
-      </div>
+      </form>
 
-      {/* Load lifecycle for the browse content below the input */}
+      {/* Load lifecycle for the browse content */}
       {loading && <SkeletonList rows={5} />}
       {error && !loading && <AppErrorView onRetry={retry} />}
 
@@ -113,7 +137,7 @@ export default function SearchPage() {
                       <Search className="w-4.5 h-4.5 w-[18px] h-[18px] text-theme-muted" />
                     </span>
                     <button
-                      onClick={() => handleRecentClick(term)}
+                      onClick={() => runSearch(term)}
                       className="flex-1 text-left text-[17px] text-theme-primary hover:text-primary transition-colors truncate"
                     >
                       {term}
@@ -140,7 +164,7 @@ export default function SearchPage() {
               {trendingSearches.map((term) => (
                 <button
                   key={term}
-                  onClick={() => setQuery(term)}
+                  onClick={() => runSearch(term)}
                   className="bg-surface border border-theme rounded-full px-4 py-2 text-sm text-theme-secondary hover:border-primary hover:text-primary transition-colors"
                 >
                   {term}
@@ -177,7 +201,7 @@ export default function SearchPage() {
       {!loading && !error && query.length >= 2 && (
         <>
           <p className="text-sm text-theme-muted mb-4">
-            {filtered.length > 0 ? `${filtered.length} results for "${query}"` : `No results for "${query}"`}
+            {filtered.length > 0 ? `${filtered.length} ${filtered.length === 1 ? 'result' : 'results'} for "${query}"` : `No results for "${query}"`}
           </p>
 
           {filtered.length === 0 ? (

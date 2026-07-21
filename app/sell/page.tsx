@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Camera, ImagePlus, Radio, List, ChevronRight } from 'lucide-react';
+import { Camera, Video, Radio, List, ChevronRight } from 'lucide-react';
 
 export default function SellPage() {
   const sellingOptions = [
@@ -14,13 +14,16 @@ export default function SellPage() {
       iconColor: 'text-theme-primary',
       href: '/sell/post' 
     },
-    { 
-      icon: ImagePlus, 
-      title: 'Create a Post', 
-      desc: 'Share shorts or go live with your audience.', 
-      iconBg: 'bg-primary/10', 
+    {
+      icon: Video,
+      // Copy and icon follow mobile's StartSellingScreen. The old subtitle
+      // ("…or go live with your audience") described Go Live, which is the
+      // separate option below it.
+      title: 'Create a Post',
+      desc: 'Record a short or upload a video to post.',
+      iconBg: 'bg-primary/10',
       iconColor: 'text-primary',
-      href: '/sell/video' 
+      href: '/sell/video'
     },
     { 
       icon: Radio, 
@@ -32,8 +35,11 @@ export default function SellPage() {
     },
   ];
 
+  // No min-h-screen on the root: the layout wrapper is already a full-height
+  // flex column, so adding 100vh below the 112px header forced ~480px of dead
+  // scroll and pushed the footer off the viewport.
   return (
-    <div className="min-h-screen bg-theme">
+    <div className="bg-theme">
       <div className="max-w-xl mx-auto px-5 py-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">

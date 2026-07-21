@@ -19,6 +19,9 @@
 # generated screenshots (rebuild with: node scripts/screenshots.mjs)
 /screenshots/
 
+# exported design assets (rebuild with: node scripts/export-icons.mjs)
+/design-assets/
+
 # misc
 .DS_Store
 *.pem

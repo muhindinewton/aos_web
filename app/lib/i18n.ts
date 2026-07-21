@@ -18,7 +18,7 @@ const translations: Record<LangCode, TranslationMap> = {
     nav_shorts:    'Shorts',
     nav_feed:      'Feed',
     nav_sell:      'Sell',
-    nav_sell_now:  'Sell Now',
+    nav_post_now:  'Post Now',
     nav_account:   'Account',
     nav_messages:  'Messages',
 
@@ -123,7 +123,7 @@ const translations: Record<LangCode, TranslationMap> = {
     nav_shorts:    'Courts',
     nav_feed:      'Fil',
     nav_sell:      'Vendre',
-    nav_sell_now:  'Vendre maintenant',
+    nav_post_now:  'Publier maintenant',
     nav_account:   'Compte',
     nav_messages:  'Messages',
 
@@ -220,7 +220,7 @@ const translations: Record<LangCode, TranslationMap> = {
     nav_shorts:    'Cortos',
     nav_feed:      'Feed',
     nav_sell:      'Vender',
-    nav_sell_now:  'Vender ahora',
+    nav_post_now:  'Publicar ahora',
     nav_account:   'Cuenta',
     nav_messages:  'Mensajes',
 
@@ -317,7 +317,7 @@ const translations: Record<LangCode, TranslationMap> = {
     nav_shorts:    '短视频',
     nav_feed:      '动态',
     nav_sell:      '出售',
-    nav_sell_now:  '立即出售',
+    nav_post_now:  '立即发布',
     nav_account:   '账户',
     nav_messages:  '消息',
 

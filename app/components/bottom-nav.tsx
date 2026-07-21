@@ -1,18 +1,19 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { 
   Home, 
   Plus,
-  MessageCircle, 
-  Search, 
+  MessageCircle,
+  Search,
+  Mic,
+  Camera,
   Heart, 
   Bell, 
   MapPin, 
   ChevronDown,
-  ChevronRight,
   PlayCircle,
   Sun,
   Moon,
@@ -21,21 +22,9 @@ import {
   Shield,
   Menu,
   X,
-
-  LayoutGrid,
   UserCircle,
-  Car,
-  Smartphone,
-  Monitor,
-  Sofa,
-  Shirt,
-  Sparkles,
-  Wrench,
-  Baby,
-  Cat,
 } from 'lucide-react';
 import { useAuth } from '../providers/auth-provider';
-import { categories } from '../lib/data';
 import { useTheme } from '../providers/theme-provider';
 import { useLocation, flagEmoji } from '../providers/location-provider';
 import { usePreferences } from '../providers/preferences-provider';
@@ -61,37 +50,18 @@ export function Navbar() {
     setMounted(true);
   }, []);
 
-  const CAT_ICONS: Record<string, React.ElementType> = {
-    'All Categories': LayoutGrid,
-    'Vehicles':       Car,
-    'Property':       Home,
-    'Phones':         Smartphone,
-    'Electronics':    Monitor,
-    'Furniture':      Sofa,
-    'Fashion':        Shirt,
-    'Beauty':         Sparkles,
-    'Services':       Wrench,
-    'Kids':           Baby,
-    'Pets':           Cat,
-  };
-
-  const catItems = [
-    { label: 'All Categories' },
-    ...categories.filter(c => c.id !== 'all').map(c => ({ label: c.name })),
-  ];
-
-  const [catOpen, setCatOpen] = useState(false);
-  const [selectedCat, setSelectedCat] = useState('All Categories');
-  const catRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (catRef.current && !catRef.current.contains(e.target as Node)) setCatOpen(false);
       if (accountRef.current && !accountRef.current.contains(e.target as Node)) setAccountOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
+
+  // Header search query. Synced from ?q= by <SearchQuerySync> below, so the box
+  // reflects the active search however it was started — typed here, or picked
+  // from the recent/trending lists on /search.
+  const [query, setQuery] = useState('');
 
   const navLinks = [
     { href: '/', label: t('nav_home') },
@@ -108,8 +78,14 @@ export function Navbar() {
         {/* Main Header */}
         <div className="bg-surface border-b border-theme">
           <div className="max-w-7xl mx-auto px-6">
+            {/* Logo and actions sit in equal-width rails (flex-1 basis-0) so the
+                search bar lands on the true centre of the header rather than
+                hugging the logo. Neither rail has min-w-0, so at narrow widths
+                they floor at their content width instead of overflowing — the
+                bar just drifts slightly off-centre rather than breaking. */}
             <div className="flex items-center gap-6 h-[68px]">
               {/* Logo */}
+              <div className="flex-1 basis-0 flex items-center">
               <Link href="/" className="flex items-center gap-2.5 shrink-0">
                 <div className="w-9 h-9 bg-[#17181C] rounded-xl flex items-center justify-center p-1">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -117,73 +93,62 @@ export function Navbar() {
                 </div>
                 <span className="text-xl font-bold text-theme-primary tracking-tight">AOS</span>
               </Link>
+              </div>
 
-              {/* Search Bar — category scope + query, like the big marketplaces */}
+              {/* Search Bar */}
               <form
                 onSubmit={e => {
                   e.preventDefault();
-                  router.push(
-                    selectedCat === 'All Categories'
-                      ? '/search'
-                      : `/shop?category=${encodeURIComponent(selectedCat)}`,
-                  );
+                  const q = query.trim();
+                  // Carry the query so /search runs it on arrival. Submitting an
+                  // empty box just opens the browse view.
+                  router.push(q ? `/search?q=${encodeURIComponent(q)}` : '/search');
                 }}
-                className="flex-1 max-w-2xl"
+                className="w-full max-w-2xl min-w-0"
               >
+                <Suspense fallback={null}><SearchQuerySync onQuery={setQuery} /></Suspense>
                 <div className="flex items-center bg-elevated rounded-full border border-transparent focus-within:border-primary/40 focus-within:bg-surface transition-colors">
-                  {/* Category scope */}
-                  <div ref={catRef} className="relative flex-shrink-0">
+                  <div className="relative flex-1 min-w-0">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-theme-muted pointer-events-none" />
+                    <input
+                      type="search"
+                      value={query}
+                      onChange={e => setQuery(e.target.value)}
+                      placeholder={t('search_placeholder')}
+                      aria-label="Search"
+                      className="w-full bg-transparent rounded-full py-2.5 pl-11 pr-2 text-sm text-theme-primary placeholder:text-theme-muted outline-none [&::-webkit-search-cancel-button]:hidden"
+                    />
+                  </div>
+                  {/* Voice / image search — same destinations as the /search page.
+                      type="button" so they don't submit the surrounding form. */}
+                  <div className="flex items-center gap-0.5 pr-1.5 flex-shrink-0">
                     <button
                       type="button"
-                      onClick={() => setCatOpen(o => !o)}
-                      className="flex items-center gap-1.5 pl-4 pr-3 py-2.5 rounded-l-full text-xs font-medium text-theme-secondary hover:text-theme-primary transition-colors whitespace-nowrap"
+                      onClick={() => router.push('/search/voice')}
+                      aria-label="Voice search"
+                      title="Voice search"
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-theme-muted hover:text-primary hover:bg-primary/10 transition-colors"
                     >
-                      {(() => { const Icon = CAT_ICONS[selectedCat] || LayoutGrid; return <Icon className="w-3.5 h-3.5 text-primary flex-shrink-0" />; })()}
-                      <span className="max-w-[96px] truncate">{selectedCat === 'All Categories' ? 'All' : selectedCat}</span>
-                      <ChevronDown className={`w-3 h-3 flex-shrink-0 transition-transform duration-200 ${catOpen ? 'rotate-180' : ''}`} />
+                      <Mic className="w-[17px] h-[17px]" />
                     </button>
-                    {catOpen && (
-                      <div className="absolute top-full left-0 mt-2 w-56 bg-surface border border-theme rounded-2xl shadow-2xl overflow-hidden z-[60]">
-                        <div className="p-1.5 max-h-80 overflow-y-auto hide-scrollbar">
-                          {catItems.map(({ label }) => {
-                            const Icon = CAT_ICONS[label] || LayoutGrid;
-                            const active = selectedCat === label;
-                            return (
-                              <button
-                                key={label}
-                                type="button"
-                                onClick={() => { setSelectedCat(label); setCatOpen(false); }}
-                                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-sm font-medium transition-colors ${
-                                  active ? 'bg-primary/10 text-primary' : 'text-theme-primary hover:bg-elevated'
-                                }`}
-                              >
-                                <span className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${active ? 'bg-primary/15' : 'bg-primary/10'}`}>
-                                  <Icon className="w-3.5 h-3.5 text-primary" />
-                                </span>
-                                {label}
-                                {active && <ChevronRight className="w-3.5 h-3.5 ml-auto opacity-70" />}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  <div className="w-px h-5 bg-theme flex-shrink-0" />
-                  {/* Query */}
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-theme-muted pointer-events-none" />
-                    <input
-                      type="text"
-                      placeholder={t('search_placeholder')}
-                      className="w-full bg-transparent rounded-r-full py-2.5 pl-10 pr-4 text-sm text-theme-primary placeholder:text-theme-muted outline-none"
-                    />
+                    <button
+                      type="button"
+                      onClick={() => router.push('/search/image')}
+                      aria-label="Image search"
+                      title="Image search"
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-theme-muted hover:text-primary hover:bg-primary/10 transition-colors"
+                    >
+                      <Camera className="w-[17px] h-[17px]" />
+                    </button>
                   </div>
                 </div>
               </form>
 
               {/* Actions */}
-              <div className="flex items-center gap-0.5 ml-auto">
+              {/* min-w-max: the rail may grow to balance the logo side, but never
+                  compresses below its content — without it the Post Now label
+                  wraps to two lines at the lg breakpoint. */}
+              <div className="flex-1 basis-0 min-w-max flex items-center justify-end gap-0.5">
                 <Link
                   href="/notifications"
                   className="relative p-2.5 rounded-full hover:bg-elevated text-theme-secondary hover:text-theme-primary transition-colors"
@@ -243,10 +208,10 @@ export function Navbar() {
 
                 <Link
                   href="/sell"
-                  className="ml-2 flex items-center gap-1.5 bg-primary hover:bg-primary-hover text-white px-4 py-2.5 rounded-full text-sm font-semibold transition-colors"
+                  className="ml-2 flex items-center gap-1.5 bg-primary hover:bg-primary-hover text-white px-4 py-2.5 rounded-full text-sm font-semibold transition-colors whitespace-nowrap"
                 >
                   <Plus className="w-4 h-4" />
-                  {t('nav_sell_now')}
+                  {t('nav_post_now')}
                 </Link>
               </div>
             </div>
@@ -397,4 +362,23 @@ export function Navbar() {
       {showLocationPicker && <LocationPickerModal onClose={() => setShowLocationPicker(false)} />}
     </>
   );
+}
+
+// Mirrors ?q= into the header box, and clears it when you leave the results.
+//
+// Split into its own component purely so the caller can wrap it in <Suspense>:
+// useSearchParams() forces everything up to the nearest boundary to render on
+// the client, and BottomNav lives in the root layout — calling it inline would
+// opt every page in the app out of static rendering. Isolated like this, only
+// this null-rendering leaf deopts.
+function SearchQuerySync({ onQuery }: { onQuery: (q: string) => void }) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const q = searchParams.get('q') ?? '';
+
+  useEffect(() => {
+    onQuery(pathname === '/search' ? q : '');
+  }, [pathname, q, onQuery]);
+
+  return null;
 }

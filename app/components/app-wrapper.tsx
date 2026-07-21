@@ -29,7 +29,14 @@ export function AppWrapper({ children }: AppWrapperProps) {
   return (
     <>
       {mounted && showSplash && <SplashScreen onComplete={handleSplashComplete} />}
-      <div className={!mounted || showSplash ? 'opacity-0' : 'opacity-100 transition-opacity duration-300'}>
+      {/* Full-height flex column so the footer is pushed to the bottom of the
+          viewport on short pages instead of floating mid-screen. PageShell's
+          <main> carries the matching flex-1. */}
+      <div
+        className={`min-h-screen flex flex-col ${
+          !mounted || showSplash ? 'opacity-0' : 'opacity-100 transition-opacity duration-300'
+        }`}
+      >
         {children}
       </div>
     </>

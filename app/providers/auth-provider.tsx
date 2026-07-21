@@ -94,11 +94,31 @@ function mergeUser(fb: FirebaseUser, profile: UserModel | null): User {
   };
 }
 
+// Screenshot harness: when the capture script seeds `aos-screenshot-user`, skip
+// Firebase entirely and hydrate from that JSON. Lets the harness shoot the
+// signed-in rendering of /account & friends, which otherwise only ever appear
+// signed-out (ProtectedRoute's bypass renders the page, but leaves user null).
+function screenshotUser(): User | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.sessionStorage.getItem('aos-screenshot-user');
+    return raw ? (JSON.parse(raw) as User) : null;
+  } catch {
+    return null;
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const mock = screenshotUser();
+    if (mock) {
+      setUser(mock);
+      setLoading(false);
+      return;
+    }
     const unsub = onAuthStateChanged(auth, async (fb) => {
       if (!fb) {
         setUser(null);

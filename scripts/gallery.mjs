@@ -15,15 +15,19 @@ const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 const title = slug => slug.replace(/^\d+-/, '').replace(/-/g, ' ')
   .replace(/\b\w/g, c => c.toUpperCase());
 
-// Union of slugs across viewports, in filename (numeric) order.
-const slugs = [...new Set(
+// Union of slugs across viewports, in filename (numeric) order. `sub` reads the
+// nested folders (flows/) the same way.
+const slugsIn = (sub = '') => [...new Set(
   VIEWPORTS.flatMap(v => {
-    const dir = path.join(ROOT, v);
+    const dir = path.join(ROOT, v, sub);
     return existsSync(dir)
       ? readdirSync(dir).filter(f => f.endsWith('.png')).map(f => f.replace('.png', ''))
       : [];
   }),
 )].sort();
+
+const slugs = slugsIn();
+const flowSlugs = slugsIn('flows');
 
 const rel = p => existsSync(path.join(ROOT, p)) ? p : null;
 
@@ -33,6 +37,7 @@ const cell = (slug, vp) => {
   const links = [
     ['full', rel(`${vp}/full/${slug}.png`)],
     ...STATES.map(s => [s, rel(`${vp}/${s}/${slug}.png`)]),
+    ['signed out', rel(`${vp}/signed-out/${slug}.png`)],
     ['dark', rel(`dark/${vp}/${slug}.png`)],
     ['dark full', rel(`dark/${vp}/full/${slug}.png`)],
   ].filter(([, p]) => p);
@@ -43,13 +48,35 @@ const cell = (slug, vp) => {
   </figure>`;
 };
 
+// Flows are viewport-gated by design — a desktop-only dropdown has no mobile
+// shot — so missing cells are omitted rather than drawn as gaps.
+const flowCell = (slug, vp) => {
+  const main = rel(`${vp}/flows/${slug}.png`);
+  if (!main) return '';
+  const dark = rel(`dark/${vp}/flows/${slug}.png`);
+  return `<figure class="shot">
+    <figcaption>${vp}</figcaption>
+    <a href="${main}" target="_blank"><img src="${main}" loading="lazy" alt="${esc(title(slug))} — ${vp}"></a>
+    ${dark ? `<nav><a href="${dark}" target="_blank">dark</a></nav>` : ''}
+  </figure>`;
+};
+
 const sections = slugs.map(slug => `
 <section id="${slug}">
   <h2><span>${slug.slice(0, 2)}</span>${esc(title(slug))}</h2>
   <div class="row">${VIEWPORTS.map(v => cell(slug, v)).join('')}</div>
 </section>`).join('');
 
-const toc = slugs.map(s => `<a href="#${s}">${esc(title(s))}</a>`).join('');
+const flowSections = flowSlugs.map(slug => `
+<section id="${slug}">
+  <h2><span>${slug.slice(0, 3)}</span>${esc(title(slug))}</h2>
+  <div class="row">${VIEWPORTS.map(v => flowCell(slug, v)).join('')}</div>
+</section>`).join('');
+
+const toc = [
+  ...slugs.map(s => `<a href="#${s}">${esc(title(s))}</a>`),
+  ...flowSlugs.map(s => `<a href="#${s}">${esc(title(s))}</a>`),
+].join('');
 
 const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -76,11 +103,18 @@ h2 span{font-size:11px;font-weight:600;color:var(--primary);background:rgba(193,
 .shot nav a{font-size:11px;font-weight:500;color:var(--sub);text-decoration:none;border:1px solid var(--border);border-radius:999px;padding:3px 10px}
 .shot nav a:hover{color:var(--primary);border-color:var(--primary)}
 .none{width:120px;height:80px;display:grid;place-items:center;color:var(--muted)}
+h1.group{font-size:19px;margin:56px 0 0;padding-top:22px;border-top:2px solid var(--border)}
+h1.group:first-child{margin-top:8px;border-top:0;padding-top:0}
+.groupnote{color:var(--sub);font-size:13px;margin:6px 0 0;max-width:70ch}
 </style></head><body>
 <header><h1>AOS Web — Screen Gallery</h1>
-<p>Every screen at mobile (390) · tablet (820) · desktop (1440), light theme. Chips under each shot open the full-page capture, the loading / empty / error states, and the dark-theme variant where captured. Click any image for full size. Regenerate: <code>node scripts/screenshots.mjs</code> then <code>node scripts/gallery.mjs</code>.</p></header>
+<p>Every screen at mobile (390) · tablet (820) · desktop (1440), light theme, signed in. Chips under each shot open the full-page capture, the loading / empty / error states, the signed-out rendering, and the dark-theme variant where captured. Click any image for full size. Regenerate: <code>node scripts/screenshots.mjs</code> then <code>node scripts/gallery.mjs</code>.</p></header>
 <nav class="toc">${toc}</nav>
-<main>${sections}</main>
+<main>
+<h1 class="group">Screens</h1>${sections}
+<h1 class="group">Interaction states</h1>
+<p class="groupnote">Dropdowns, sheets, modals, tabs and multi-step forms — states a plain page load never reaches. Captured only at the viewports where the trigger exists, so a desktop-only menu shows one cell.</p>${flowSections}
+</main>
 </body></html>`;
 
 writeFileSync(path.join(ROOT, 'index.html'), html);
