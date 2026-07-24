@@ -24,10 +24,10 @@ import {
   TrendingUp,
   Navigation,
 } from 'lucide-react';
-import { products } from '../../lib/data';
+import { products, services } from '../../lib/data';
 import { ProductCard } from '../../components/product-card';
 import { useHasContactedSeller } from '../../lib/contacted-sellers';
-import { getShopLocation, osmEmbedUrl, type ShopLocation } from '../../lib/shop-location';
+import { getProductShopLocation, osmEmbedUrl, type ShopLocation } from '../../lib/shop-location';
 
 const reviews = [
   {
@@ -78,7 +78,13 @@ function StarRating({ rating, size = 4 }: { rating: number; size?: number }) {
 export default function ProductDetailPage() {
   const params = useParams();
   const productId = Array.isArray(params.id) ? params.id[0] : params.id;
-  const product = products.find((item) => item.id === productId) || products[0];
+  // Services live in their own array; the detail route serves both, so a service
+  // link like /product/s2 resolves to the real service instead of falling back
+  // to the first product.
+  const product =
+    products.find((item) => item.id === productId) ||
+    services.find((item) => item.id === productId) ||
+    products[0];
   const seller = product.seller ?? {
     id: 'fallback-seller',
     name: 'Trusted Seller',
@@ -96,8 +102,8 @@ export default function ProductDetailPage() {
   const imageCount = 4;
 
   useEffect(() => {
-    setShopLocation(getShopLocation(seller.name));
-  }, [seller.name]);
+    setShopLocation(getProductShopLocation(product));
+  }, [product]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -108,7 +114,9 @@ export default function ProductDetailPage() {
   }, []);
 
   const similarProducts = useMemo(
-    () => products.filter((item) => item.category === product.category && item.id !== product.id).slice(0, 6),
+    () => [...products, ...services]
+      .filter((item) => item.category === product.category && item.id !== product.id)
+      .slice(0, 6),
     [product.category, product.id],
   );
 

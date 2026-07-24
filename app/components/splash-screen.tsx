@@ -1,348 +1,161 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import {
-  Globe, ShoppingCart, Truck, Plane, MapPin, Store, Languages, Package,
-} from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// Modern splash — deliberately minimal, per current launch-screen practice:
+// resolve in well under 2s, one focal element (the logo), quiet micro-motion
+// (blur-to-sharp + a soft breathing glow) rather than a spin/burst, and a thin
+// progress line instead of a spinner. The logo already contains the "AOS"
+// wordmark, so there is no separate text lockup. A deep gradient replaces the
+// old dark card: the logo's white shapes stay legible without a box around it.
+
 interface SplashScreenProps { onComplete: () => void; }
-interface Bubble { x: number; y: number; radius: number; speed: number; phase: number; }
-type SplashPhase = 'init' | 'logo' | 'wheel' | 'text' | 'done';
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-const RING_RADIUS   = 130;          // px — matches mobile's size.width*0.32 ≈ 125
-const INNER_R       = 57.5;         // half of logo 115px
-const OUTER_R       = RING_RADIUS - 24;
-const WHEEL_ICONS   = [Globe, ShoppingCart, Truck, Plane, MapPin, Store, Languages, Package];
-const PRIMARY_RED   = '#C1121F';
+const PRIMARY_RED = '#C1121F';
+const KENYA_GREEN = '#0B7A3B';
 
-// ─── Easing helpers ───────────────────────────────────────────────────────────
-const easeOutCubic    = (t: number) => 1 - Math.pow(1 - t, 3);
-const easeInCubic     = (t: number) => t * t * t;
-const easeInOut       = (t: number) => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-const easeOutSine     = (t: number) => Math.sin(t * Math.PI / 2);
-const easeInSine      = (t: number) => 1 - Math.cos(t * Math.PI / 2);
-const easeInOutCubic  = (t: number) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+// Total ≈ 1.6s of presence + a 420ms fade. Snappy on a real device; the logo
+// itself resolves in the first ~700ms.
+const HOLD_MS  = 1600;
+const FADE_MS  = 420;
 
-function sleep(ms: number) { return new Promise<void>(r => setTimeout(r, ms)); }
-
-function generateBubbles(): Bubble[] {
-  return Array.from({ length: 12 }, () => ({
-    x:      Math.random(),
-    y:      Math.random(),
-    radius: 30 + Math.random() * 80,
-    speed:  0.3 + Math.random() * 0.7,
-    phase:  Math.random() * Math.PI * 2,
-  }));
-}
-
-// ─── Logo image with text fallback ───────────────────────────────────────────
-function LogoImage() {
-  const [failed, setFailed] = useState(false);
-  if (failed) {
-    return (
-      <span style={{ fontFamily: 'Poppins, sans-serif', fontWeight: 900, fontSize: 30, color: PRIMARY_RED, letterSpacing: -1, lineHeight: 1 }}>
-        AOS
-      </span>
-    );
-  }
-  return (
-    <img
-      src="/aos-logo.png"
-      alt="AOS"
-      onError={() => setFailed(true)}
-      style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-    />
-  );
-}
-
-// ─── Wheel (ring + spokes + icon circles) ────────────────────────────────────
-function Wheel() {
-  const n         = WHEEL_ICONS.length;
-  const container = RING_RADIUS * 2 + 120;
-  const cx        = container / 2;
-  const cy        = container / 2;
-
-  return (
-    <div style={{ position: 'relative', width: container, height: container }}>
-      {/* SVG ring + spokes */}
-      <svg
-        width={container} height={container}
-        style={{ position: 'absolute', inset: 0 }}
-      >
-        {/* Ring */}
-        <circle
-          cx={cx} cy={cy} r={RING_RADIUS}
-          fill="none"
-          stroke={PRIMARY_RED} strokeWidth={1.2} strokeOpacity={0.35}
-        />
-        {/* Spokes */}
-        {Array.from({ length: n }, (_, i) => {
-          const angle = -Math.PI / 2 + (2 * Math.PI * i / n);
-          return (
-            <line key={i}
-              x1={cx + INNER_R * Math.cos(angle)}
-              y1={cy + INNER_R * Math.sin(angle)}
-              x2={cx + OUTER_R * Math.cos(angle)}
-              y2={cy + OUTER_R * Math.sin(angle)}
-              stroke={PRIMARY_RED} strokeWidth={0.8} strokeOpacity={0.22}
-              strokeLinecap="round"
-            />
-          );
-        })}
-      </svg>
-
-      {/* Icon circles */}
-      {WHEEL_ICONS.map((Icon, i) => {
-        const angle = -Math.PI / 2 + (2 * Math.PI * i / n);
-        const x     = cx + RING_RADIUS * Math.cos(angle) - 24;
-        const y     = cy + RING_RADIUS * Math.sin(angle) - 24;
-        return (
-          <div
-            key={i}
-            style={{
-              position:     'absolute',
-              left:         x,
-              top:          y,
-              width:        48,
-              height:       48,
-              borderRadius: '50%',
-              background:   'white',
-              display:      'flex',
-              alignItems:   'center',
-              justifyContent: 'center',
-              boxShadow:    `0 2px 8px rgba(193,18,31,0.12), 0 1px 3px rgba(0,0,0,0.06)`,
-            }}
-          >
-            <Icon style={{ width: 22, height: 22, color: PRIMARY_RED }} />
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-// ─── Main component ───────────────────────────────────────────────────────────
 export function SplashScreen({ onComplete }: SplashScreenProps) {
-  const canvasRef   = useRef<HTMLCanvasElement>(null);
-  const bubblesRef  = useRef<Bubble[]>(generateBubbles());
-  const rafBubbles  = useRef<number>(0);
-
-  const [phase,        setPhase]        = useState<SplashPhase>('init');
-  const [wheelProg,    setWheelProg]    = useState(0);
-  const [textProg,     setTextProg]     = useState(0);
-  const [fading,       setFading]       = useState(false);
-
-  // ── Bubble canvas animation ─────────────────────────────────────────────────
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const resize = () => {
-      canvas.width  = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-    resize();
-    window.addEventListener('resize', resize);
-
-    const draw = (ts: number) => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const progress = (ts / 12000) % 1;
-
-      for (const b of bubblesRef.current) {
-        const time = progress * Math.PI * 2 + b.phase;
-        const t1   = time * b.speed;
-        const t2   = time * b.speed * 0.6 + 1.2;
-        const t3   = time * b.speed * 0.3 + 2.4;
-        const fx   = Math.sin(t1) * 12 + Math.sin(t2) * 8 + Math.cos(t3) * 5;
-        const fy   = Math.cos(t1 * 0.8) * 10 + Math.sin(t2 * 0.7) * 6;
-        const x    = b.x * canvas.width  + fx;
-        const y    = b.y * canvas.height + fy;
-        const pulse = 1 + (Math.sin(time * 0.8) * 0.5 + 0.5) * 0.08;
-        const r    = b.radius * pulse;
-
-        const g = ctx.createRadialGradient(x, y, 0, x, y, r);
-        g.addColorStop(0,    'rgba(193,18,31,0.125)');
-        g.addColorStop(0.45, 'rgba(193,18,31,0.055)');
-        g.addColorStop(1,    'rgba(193,18,31,0)');
-        ctx.beginPath();
-        ctx.arc(x, y, r, 0, Math.PI * 2);
-        ctx.fillStyle = g;
-        ctx.fill();
-      }
-      rafBubbles.current = requestAnimationFrame(draw);
-    };
-    rafBubbles.current = requestAnimationFrame(draw);
-
-    return () => {
-      cancelAnimationFrame(rafBubbles.current);
-      window.removeEventListener('resize', resize);
-    };
-  }, []);
-
-  // ── Main animation sequence ─────────────────────────────────────────────────
-  const animate = useCallback((duration: number, setter: (v: number) => void) =>
-    new Promise<void>(resolve => {
-      const start = performance.now();
-      const tick  = (now: number) => {
-        const p = Math.min((now - start) / duration, 1);
-        setter(p);
-        if (p < 1) requestAnimationFrame(tick);
-        else resolve();
-      };
-      requestAnimationFrame(tick);
-    }), []);
+  const [revealed, setRevealed] = useState(false);  // logo blur/scale/opacity in
+  const [fading, setFading]     = useState(false);
+  const [reduced, setReduced]   = useState(false);
 
   useEffect(() => {
-    const run = async () => {
-      await sleep(350);
-      setPhase('logo');
+    const rm = typeof window !== 'undefined'
+      && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    setReduced(!!rm);
 
-      await sleep(700);
-      setPhase('wheel');
-      await animate(3200, setWheelProg);
+    // Next frame so the initial (hidden) state paints before we transition in —
+    // otherwise the browser collapses both into one frame and the reveal is lost.
+    const raf = requestAnimationFrame(() => setRevealed(true));
+    const t1  = setTimeout(() => setFading(true), HOLD_MS);
+    const t2  = setTimeout(onComplete, HOLD_MS + FADE_MS);
 
-      setPhase('text');
-      await animate(1000, setTextProg);
+    return () => { cancelAnimationFrame(raf); clearTimeout(t1); clearTimeout(t2); };
+  }, [onComplete]);
 
-      await sleep(900);
-      setFading(true);
-      await sleep(600);
-      onComplete();
-    };
-    run();
-  }, [animate, onComplete]);
-
-  // ── Wheel scale TweenSequence (mirrors Flutter) ─────────────────────────────
-  const wheelScale = (() => {
-    const p = wheelProg;
-    if (p < 0.28) return easeOutCubic(p / 0.28);
-    if (p < 0.50) return 1 + easeInOut((p - 0.28) / 0.22) * 0.02;
-    if (p < 0.72) return 1.02 - easeInOut((p - 0.50) / 0.22) * 0.02;
-    return 1 - easeInCubic((p - 0.72) / 0.28);
-  })();
-
-  const wheelFade = (() => {
-    const p = wheelProg;
-    if (p < 0.22) return easeOutSine(p / 0.22);
-    if (p < 0.78) return 1;
-    return 1 - easeInSine((p - 0.78) / 0.22);
-  })();
-
-  const wheelRot     = easeInOutCubic(wheelProg) * Math.PI * 0.35; // radians
-
-  const showLogo     = phase !== 'init';
-  const showWheel    = phase === 'wheel' || phase === 'text' || phase === 'done';
-  const showText     = phase === 'text'  || phase === 'done';
-
-  const textOpacity  = easeOutCubic(textProg);
-  const textY        = (1 - easeOutCubic(textProg)) * 14;
-  const subOpacity   = Math.max(0, (textProg - 0.15) / 0.85);
-  const subY         = (1 - easeOutCubic(Math.max(0, (textProg - 0.1) / 0.9))) * 12;
+  const revealMs = reduced ? 200 : 720;
 
   return (
     <div
       className="fixed inset-0 z-[200] overflow-hidden"
       style={{
-        background: 'linear-gradient(to bottom, #FFF5F5 0%, #FAF0F0 35%, #F5F8F5 70%, #F8F8F8 100%)',
-        opacity:    fading ? 0 : 1,
-        transition: fading ? 'opacity 600ms ease' : 'none',
+        // Deep, slightly warm charcoal → near-black. Not flat black — the radial
+        // lift gives the logo something to sit in.
+        background: 'radial-gradient(120% 120% at 50% 38%, #1B1C22 0%, #101116 55%, #08090C 100%)',
+        opacity: fading ? 0 : 1,
+        transition: `opacity ${FADE_MS}ms ease`,
       }}
     >
-      {/* ── Kenyan flag accent layers ── */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '22%',
-          background: 'linear-gradient(to bottom, rgba(0,0,0,0.11) 0%, rgba(0,0,0,0) 100%)' }} />
-        <div style={{ position: 'absolute', top: '21%', left: 0, right: 0, height: '2.5%',
-          background: 'rgba(255,255,255,0.22)' }} />
-        <div style={{ position: 'absolute', inset: 0,
-          background: 'radial-gradient(ellipse at center, rgba(193,18,31,0.15) 0%, rgba(193,18,31,0) 70%)' }} />
-        <div style={{ position: 'absolute', top: '76.5%', left: 0, right: 0, height: '2.5%',
-          background: 'rgba(255,255,255,0.22)' }} />
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '22%',
-          background: 'linear-gradient(to top, rgba(0,102,0,0.12) 0%, rgba(0,102,0,0) 100%)' }} />
-      </div>
+      <style>{`
+        @keyframes aos-drift-a {
+          0%,100% { transform: translate3d(-4%, -2%, 0) scale(1); }
+          50%     { transform: translate3d(4%, 3%, 0) scale(1.08); }
+        }
+        @keyframes aos-drift-b {
+          0%,100% { transform: translate3d(3%, 2%, 0) scale(1.05); }
+          50%     { transform: translate3d(-3%, -3%, 0) scale(1); }
+        }
+        @keyframes aos-glow {
+          0%,100% { opacity: .55; transform: translate(-50%, -50%) scale(1); }
+          50%     { opacity: .8;  transform: translate(-50%, -50%) scale(1.06); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .aos-anim { animation: none !important; }
+        }
+      `}</style>
 
-      {/* ── Floating bubbles canvas ── */}
-      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
+      {/* Soft colour blobs — a quiet gradient-mesh depth, not the old bubble field. */}
+      <div
+        className="aos-anim pointer-events-none absolute"
+        style={{
+          top: '-10%', left: '-8%', width: '55vmax', height: '55vmax',
+          background: `radial-gradient(circle, ${PRIMARY_RED}2E 0%, ${PRIMARY_RED}00 62%)`,
+          filter: 'blur(12px)',
+          animation: 'aos-drift-a 9s ease-in-out infinite',
+        }}
+      />
+      <div
+        className="aos-anim pointer-events-none absolute"
+        style={{
+          bottom: '-14%', right: '-10%', width: '52vmax', height: '52vmax',
+          background: `radial-gradient(circle, ${KENYA_GREEN}26 0%, ${KENYA_GREEN}00 62%)`,
+          filter: 'blur(12px)',
+          animation: 'aos-drift-b 11s ease-in-out infinite',
+        }}
+      />
 
-      {/* ── Icon wheel ── */}
-      {showWheel && (
+      {/* Center stack */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center px-8">
+        <div className="relative flex items-center justify-center" style={{ width: 168, height: 168 }}>
+          {/* Breathing glow directly behind the logo — gives the white shapes a
+              halo so they never read as floating on nothing. */}
+          <div
+            className="aos-anim absolute left-1/2 top-1/2 pointer-events-none"
+            style={{
+              width: 220, height: 220, borderRadius: '50%',
+              background: `radial-gradient(circle, ${PRIMARY_RED}3A 0%, ${PRIMARY_RED}00 68%)`,
+              transform: 'translate(-50%, -50%)',
+              opacity: revealed ? 1 : 0,
+              transition: `opacity ${revealMs}ms ease`,
+              animation: revealed ? 'aos-glow 3.4s ease-in-out infinite' : 'none',
+            }}
+          />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/aos-logo.png"
+            alt="AOS — Africa Online Space"
+            style={{
+              width: '100%', height: '100%', objectFit: 'contain',
+              position: 'relative',
+              opacity: revealed ? 1 : 0,
+              transform: revealed ? 'scale(1)' : 'scale(0.9)',
+              filter: revealed
+                ? 'drop-shadow(0 8px 26px rgba(0,0,0,0.45))'
+                : 'blur(10px) drop-shadow(0 8px 26px rgba(0,0,0,0.45))',
+              transition: `opacity ${revealMs}ms ease, transform ${revealMs}ms cubic-bezier(0.16,1,0.3,1), filter ${revealMs}ms ease`,
+            }}
+          />
+        </div>
+
+        {/* Tagline — the wordmark lives in the logo, so this is the only text. */}
         <div
-          className="absolute inset-0 flex items-center justify-center"
           style={{
-            transform: `scale(${wheelScale}) rotate(${wheelRot}rad)`,
-            opacity:   Math.max(0, Math.min(1, wheelFade)),
+            marginTop: 26,
+            opacity: revealed ? 1 : 0,
+            transform: revealed ? 'translateY(0)' : 'translateY(10px)',
+            transition: `opacity ${revealMs}ms ease ${reduced ? 0 : 220}ms, transform ${revealMs}ms ease ${reduced ? 0 : 220}ms`,
           }}
         >
-          <Wheel />
+          <span
+            style={{
+              fontFamily: 'Poppins, system-ui, sans-serif',
+              fontWeight: 500, fontSize: 12.5, letterSpacing: 4,
+              color: 'rgba(255,255,255,0.72)', textTransform: 'uppercase',
+            }}
+          >
+            Africa Online Space
+          </span>
         </div>
-      )}
+      </div>
 
-      {/* ── Center content (logo + text) ── */}
-      <div className="absolute inset-0 flex items-center justify-center" style={{ zIndex: 10 }}>
-        <div className="flex flex-col items-center">
-
-          {/* Logo card */}
-          <div style={{
-            width:        115,
-            height:       115,
-            borderRadius: 26,
-            // Dark neutral so every element of the logo (white outline, red
-            // basket, green S) stays legible.
-            background:   '#17181C',
-            display:      'flex',
-            alignItems:   'center',
-            justifyContent: 'center',
-            padding:      14,
-            boxShadow:    '0 8px 32px rgba(193,18,31,0.10), 0 2px 12px rgba(0,0,0,0.07)',
-            transform:    showLogo ? 'scale(1)' : 'scale(0)',
-            opacity:      showLogo ? 1 : 0,
-            transition:   'transform 900ms cubic-bezier(0.34,1.56,0.64,1), opacity 540ms ease-out',
-          }}>
-            <LogoImage />
-          </div>
-
-          {/* Final text */}
-          {showText && (
-            <div className="flex flex-col items-center" style={{ marginTop: textProg * 32 }}>
-              <div style={{ opacity: textOpacity, transform: `translateY(${textY}px)` }}>
-                <span style={{
-                  fontFamily:   '"Playfair Display", Georgia, serif',
-                  fontWeight:   800,
-                  fontSize:     52,
-                  color:        '#1A1A1A',
-                  letterSpacing: 16,
-                  display:      'block',
-                  textAlign:    'center',
-                }}>
-                  AOS
-                </span>
-              </div>
-              <div style={{
-                opacity:   Math.max(0, Math.min(1, subOpacity)),
-                transform: `translateY(${subY}px)`,
-                marginTop: textProg * 10,
-              }}>
-                <span style={{
-                  fontFamily:   'Poppins, sans-serif',
-                  fontWeight:   600,
-                  fontSize:     12,
-                  color:        '#888888',
-                  letterSpacing: 5,
-                  display:      'block',
-                  textAlign:    'center',
-                }}>
-                  AFRICA ONLINE STORES
-                </span>
-              </div>
-            </div>
-          )}
-
-        </div>
+      {/* Thin determinate progress line — modern loading cue over a spinner. */}
+      <div
+        className="absolute left-1/2 -translate-x-1/2"
+        style={{ bottom: 'max(48px, 9vh)', width: 132, height: 3, borderRadius: 3, background: 'rgba(255,255,255,0.10)', overflow: 'hidden' }}
+      >
+        <div
+          style={{
+            height: '100%', borderRadius: 3,
+            background: `linear-gradient(90deg, ${PRIMARY_RED}, #E63946)`,
+            width: revealed ? '100%' : '0%',
+            transition: `width ${HOLD_MS - 120}ms cubic-bezier(0.4,0,0.2,1)`,
+          }}
+        />
       </div>
     </div>
   );

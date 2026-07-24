@@ -14,7 +14,7 @@ export const categories: Category[] = [
   { id: 'pets', name: 'Pets', icon: 'Cat', subcategories: ['Dogs', 'Cats', 'Birds', 'Supplies'] },
 ];
 
-export const services = [
+export const services: Product[] = [
   { id: 's1', title: 'Professional Plumbing', location: 'Nairobi, Kenya', price: 'KSh 2,500', originalPrice: 'KSh 3,500', category: 'Services', likes: 45, rating: 4.8, reviews: '342', isOffer: true, discount: 29, offerExpiry: 3, description: 'Expert plumbing services for all your needs.', seller: { id: 'v1', name: 'John Kamau', avatar: 'J', rating: 4.8, verified: true } },
   { id: 's2', title: 'House Cleaning', location: 'Westlands, Nairobi', price: 'KSh 1,500', originalPrice: 'KSh 2,000', category: 'Services', likes: 32, rating: 4.6, reviews: '128', isOffer: true, discount: 25, offerExpiry: 5, description: 'Professional house cleaning services.', seller: { id: 'v2', name: 'Mary Wanjiku', avatar: 'M', rating: 4.6, verified: true } },
   { id: 's3', title: 'AC Repair & Service', location: 'Mombasa, Kenya', price: 'KSh 3,000', originalPrice: 'KSh 4,000', category: 'Services', likes: 67, rating: 4.9, reviews: '256', isOffer: true, discount: 25, offerExpiry: 2, description: 'Air conditioning repair and maintenance.', seller: { id: 'v3', name: 'Peter Ochieng', avatar: 'P', rating: 4.9, verified: true } },
