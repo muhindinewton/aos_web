@@ -3,7 +3,7 @@
 import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Search, Grid3X3, List, SlidersHorizontal, X, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Search, SlidersHorizontal, X, ChevronDown } from 'lucide-react';
 import { products } from '../lib/data';
 import { CATEGORY_SUBS, CATEGORY_DATA_NAMES } from '../lib/category-data';
 import { ProductCard } from '../components/product-card';
@@ -32,7 +32,6 @@ function SubcategoryContent() {
   const [search, setSearch]         = useState('');
   const [sort, setSort]             = useState('Best Match');
   const [showSort, setShowSort]     = useState(false);
-  const [viewMode, setViewMode]     = useState<'grid' | 'list'>('grid');
   const { loading, error, retry, forceEmpty } = usePageLoad();
 
   const baseProducts = dataName
@@ -151,21 +150,6 @@ function SubcategoryContent() {
               </div>
             )}
           </div>
-          {/* View toggle */}
-          <div className="flex gap-0.5 bg-elevated rounded-lg p-0.5">
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`p-1.5 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-surface text-primary shadow-sm' : 'text-theme-muted'}`}
-            >
-              <Grid3X3 className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              className={`p-1.5 rounded-md transition-colors ${viewMode === 'list' ? 'bg-surface text-primary shadow-sm' : 'text-theme-muted'}`}
-            >
-              <List className="w-3.5 h-3.5" />
-            </button>
-          </div>
         </div>
       </div>
 
@@ -183,7 +167,7 @@ function SubcategoryContent() {
             </button>
           </div>
         ) : (
-          <div className={`grid gap-3 ${viewMode === 'grid' ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5' : 'grid-cols-1 md:grid-cols-2'}`}>
+          <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {displayProducts.map(p => (
               <ProductCard key={p.id} product={p} />
             ))}

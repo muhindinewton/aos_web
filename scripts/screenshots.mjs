@@ -8,7 +8,7 @@
 //         screenshots/{viewport}/{loading,error,empty}/{slug}.png
 
 import puppeteer from 'puppeteer-core';
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, existsSync, unlinkSync } from 'node:fs';
 import path from 'node:path';
 
 const BASE = process.argv[2] || 'http://localhost:3100';
@@ -238,6 +238,11 @@ const overflows = [];
 // as coverage.
 const flowFailures = [];
 
+// Captures that threw. Collected rather than thrown so one bad page can't
+// truncate the sweep — a crash at route 33 used to leave 34-51 silently
+// missing while the gallery still reported success.
+const captureFailures = [];
+
 // Click the innermost element whose trimmed text matches `label`. Rows here are
 // often <div onClick> rather than <button>, so this can't just query buttons.
 // el.click() dispatches a real bubbling MouseEvent, which React's delegated
@@ -324,37 +329,70 @@ async function capture(page, url, file, settleMs, fullFile = null) {
   await sleep(settleMs);
 
   // Layout assertion: no page may be wider than the viewport.
-  const overflowPx = await page.evaluate(
-    () => document.documentElement.scrollWidth - window.innerWidth,
-  );
+  // A page that client-side redirects mid-settle detaches the frame and this
+  // throws; that must not abort the whole sweep, so it's caught and skipped.
+  let overflowPx = 0;
+  try {
+    overflowPx = await page.evaluate(
+      () => document.documentElement.scrollWidth - window.innerWidth,
+    );
+  } catch {
+    process.stdout.write(`  ⚠ overflow check skipped (frame navigated) ${path.relative(OUT, file)}\n`);
+  }
   if (overflowPx > 1) {
     overflows.push({ shot: path.relative(OUT, file), overflowPx });
     process.stdout.write(`  ⚠ OVERFLOW +${overflowPx}px ${path.relative(OUT, file)}\n`);
   }
 
-  await page.screenshot({ path: file });
-  process.stdout.write(`  ✓ ${path.relative(OUT, file)}\n`);
+  try {
+    await page.screenshot({ path: file });
+    process.stdout.write(`  ✓ ${path.relative(OUT, file)}\n`);
+  } catch (e) {
+    captureFailures.push({ shot: path.relative(OUT, file), reason: e.message.split('\n')[0] });
+    process.stdout.write(`  ✗ ${path.relative(OUT, file)} — ${e.message.split('\n')[0]}\n`);
+    return;
+  }
 
   // Long pages: also capture the entire scroll height, stitched.
   if (!fullFile) return;
-  const { scrollH, viewH } = await page.evaluate(() => ({
-    scrollH: document.documentElement.scrollHeight,
-    viewH: window.innerHeight,
-  }));
-  if (scrollH <= viewH + 60) return; // fits in one screen — viewport shot is the full page
+  let scrollH, viewH;
+  try {
+    ({ scrollH, viewH } = await page.evaluate(() => ({
+      scrollH: document.documentElement.scrollHeight,
+      viewH: window.innerHeight,
+    })));
+  } catch {
+    return; // frame went away — the viewport shot above is already saved
+  }
+  // Fits in one screen — the viewport shot IS the full page. Delete any
+  // full-page capture left from when this page used to be taller, otherwise it
+  // sits there forever showing a layout that no longer exists and the gallery
+  // keeps linking it.
+  if (scrollH <= viewH + 60) {
+    if (existsSync(fullFile)) {
+      unlinkSync(fullFile);
+      process.stdout.write(`  – removed stale ${path.relative(OUT, fullFile)} (page now fits one screen)\n`);
+    }
+    return;
+  }
 
   // Walk the page once so lazy images/content below the fold load first.
-  await page.evaluate(async () => {
-    const step = window.innerHeight;
-    for (let y = 0; y < document.documentElement.scrollHeight; y += step) {
-      window.scrollTo(0, y);
-      await new Promise(r => setTimeout(r, 120));
-    }
-    window.scrollTo(0, 0);
-  });
-  await sleep(400);
-  await page.screenshot({ path: fullFile, fullPage: true });
-  process.stdout.write(`  ✓ ${path.relative(OUT, fullFile)} (full page)\n`);
+  try {
+    await page.evaluate(async () => {
+      const step = window.innerHeight;
+      for (let y = 0; y < document.documentElement.scrollHeight; y += step) {
+        window.scrollTo(0, y);
+        await new Promise(r => setTimeout(r, 120));
+      }
+      window.scrollTo(0, 0);
+    });
+    await sleep(400);
+    await page.screenshot({ path: fullFile, fullPage: true });
+    process.stdout.write(`  ✓ ${path.relative(OUT, fullFile)} (full page)\n`);
+  } catch (e) {
+    captureFailures.push({ shot: path.relative(OUT, fullFile), reason: e.message.split('\n')[0] });
+    process.stdout.write(`  ✗ ${path.relative(OUT, fullFile)} — ${e.message.split('\n')[0]}\n`);
+  }
 }
 
 // Like capture(), but drives the page into an interaction state first. Steps run
@@ -408,6 +446,7 @@ async function main() {
   const health = await fetch(BASE).catch(() => null);
   if (!health || !health.ok) {
     console.error(`✗ Server not reachable at ${BASE} (status ${health?.status ?? 'none'}). Start it with: npx next start -p 3100`);
+    console.error('  Then run both theme passes with: npm run shots:all');
     process.exit(2);
   }
 
@@ -455,24 +494,31 @@ async function main() {
 
     console.log(`\n── ${vpName} (${viewport.width}×${viewport.height}) ──`);
     for (const route of ROUTES_TO_RUN) {
-      // Content state — give usePageLoad's 700ms fetch time to settle.
-      // Pages taller than the viewport also get a stitched full-page shot.
-      await capture(
-        page,
-        BASE + route.path,
-        path.join(OUT, vpName, `${route.slug}.png`),
-        1400,
-        path.join(OUT, vpName, 'full', `${route.slug}.png`),
-      );
-
-      if (!route.stateful) continue;
-      for (const [state, param] of Object.entries(STATE_PARAMS)) {
+      // Belt-and-braces: capture() handles its own failures, but anything that
+      // still escapes must not take the remaining routes down with it.
+      try {
+        // Content state — give usePageLoad's 700ms fetch time to settle.
+        // Pages taller than the viewport also get a stitched full-page shot.
         await capture(
           page,
-          BASE + withParam(route.path, param),
-          path.join(OUT, vpName, state, `${route.slug}.png`),
-          state === 'empty' ? 1400 : 500,
+          BASE + route.path,
+          path.join(OUT, vpName, `${route.slug}.png`),
+          1400,
+          path.join(OUT, vpName, 'full', `${route.slug}.png`),
         );
+
+        if (!route.stateful) continue;
+        for (const [state, param] of Object.entries(STATE_PARAMS)) {
+          await capture(
+            page,
+            BASE + withParam(route.path, param),
+            path.join(OUT, vpName, state, `${route.slug}.png`),
+            state === 'empty' ? 1400 : 500,
+          );
+        }
+      } catch (e) {
+        captureFailures.push({ shot: `${vpName}/${route.slug}`, reason: e.message.split('\n')[0] });
+        process.stdout.write(`  ✗ ${vpName}/${route.slug} — ${e.message.split('\n')[0]}\n`);
       }
     }
 
@@ -509,6 +555,12 @@ async function main() {
   }
 
   await browser.close();
+
+  if (captureFailures.length) {
+    console.error(`\n✗ ${captureFailures.length} capture(s) failed and were not written:`);
+    for (const f of captureFailures) console.error(`   ${f.shot}  —  ${f.reason}`);
+    process.exitCode = 1;
+  }
 
   if (flowFailures.length) {
     console.error(`\n✗ ${flowFailures.length} interaction flow(s) never reached their state (no shot saved):`);

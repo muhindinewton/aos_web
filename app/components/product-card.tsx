@@ -9,23 +9,32 @@ import { usePreferences } from '../providers/preferences-provider';
 
 interface ProductCardProps {
   product: Product;
+  // Controlled heart, opt-in. When `onLikeChange` is passed the card delegates
+  // the heart to the parent (e.g. the wishlist removes the item) instead of its
+  // default local like-toggle + toast. Existing call sites pass neither and keep
+  // the original behaviour.
+  liked?: boolean;
+  onLikeChange?: (next: boolean) => void;
 }
 
-export function ProductCard({ product }: ProductCardProps) {
-  const [liked, setLiked] = useState(false);
+export function ProductCard({ product, liked: likedProp, onLikeChange }: ProductCardProps) {
+  const [internalLiked, setInternalLiked] = useState(false);
   const { showToast } = useToast();
   const { formatPrice } = usePreferences();
+
+  const controlled = onLikeChange !== undefined;
+  const liked = controlled ? !!likedProp : internalLiked;
 
   const handleLike = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const newLiked = !liked;
-    setLiked(newLiked);
-    if (newLiked) {
-      showToast('Added to wishlist', 'wishlist');
-    } else {
-      showToast('Removed from wishlist', 'info');
+    if (controlled) {
+      onLikeChange(!liked);
+      return;
     }
+    const newLiked = !internalLiked;
+    setInternalLiked(newLiked);
+    showToast(newLiked ? 'Added to wishlist' : 'Removed from wishlist', newLiked ? 'wishlist' : 'info');
   };
 
   return (

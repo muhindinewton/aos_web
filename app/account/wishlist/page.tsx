@@ -4,10 +4,11 @@ import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
-  ArrowLeft, Search, Heart, Star, ChevronDown, LayoutGrid, Rows,
+  ArrowLeft, Search, Heart, ChevronDown,
   SlidersHorizontal, Check,
 } from 'lucide-react';
 import ProtectedRoute from '../../components/protected-route';
+import { ProductCard } from '../../components/product-card';
 import { products } from '../../lib/data';
 import { usePageLoad, SkeletonGrid, AppErrorView } from '../../components/app-state-views';
 
@@ -22,7 +23,6 @@ function WishlistPage() {
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<Sort>('Best Match');
   const [sortOpen, setSortOpen] = useState(false);
-  const [gridView, setGridView] = useState(true);
   const { loading, error, retry, forceEmpty } = usePageLoad();
 
   const items = useMemo(() => {
@@ -60,7 +60,7 @@ function WishlistPage() {
         </div>
       </div>
 
-      {/* ── Toolbar: sort · view toggle · filter ── */}
+      {/* ── Toolbar: sort · filter ── */}
       <div className="flex items-center justify-between mb-4">
         <div className="relative">
           <button
@@ -88,18 +88,9 @@ function WishlistPage() {
             </>
           )}
         </div>
-        <div className="flex items-center gap-5">
-          <button
-            onClick={() => setGridView(v => !v)}
-            className="text-theme-secondary hover:text-theme-primary transition-colors"
-            aria-label="Toggle view"
-          >
-            {gridView ? <LayoutGrid className="w-6 h-6" /> : <Rows className="w-6 h-6" />}
-          </button>
-          <button className="flex items-center gap-2 text-theme-primary text-[17px] font-medium">
-            Filter <SlidersHorizontal className="w-5 h-5" />
-          </button>
-        </div>
+        <button className="flex items-center gap-2 text-theme-primary text-[17px] font-medium">
+          Filter <SlidersHorizontal className="w-5 h-5" />
+        </button>
       </div>
 
       {/* ── Content ── */}
@@ -128,50 +119,16 @@ function WishlistPage() {
           )}
         </div>
       ) : (
-        <div className={gridView ? 'grid grid-cols-2 sm:grid-cols-3 gap-3' : 'space-y-3'}>
+        <div className="grid gap-3 grid-cols-2 sm:grid-cols-3">
           {items.map(p => (
-            <Link
+            // Shared card, same as the rest of the app. The heart is controlled
+            // here so tapping it removes the item from the wishlist.
+            <ProductCard
               key={p.id}
-              href={`/product/${p.id}`}
-              className={`bg-surface rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.05)] overflow-hidden ${
-                gridView ? 'block p-2.5' : 'flex items-center gap-3 p-3'
-              }`}
-            >
-              {/* Image area with heart button */}
-              <div className={`relative bg-elevated rounded-xl overflow-hidden flex-shrink-0 ${gridView ? 'h-[150px]' : 'w-24 h-24'}`}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={`https://picsum.photos/seed/${p.id}/400/300`}
-                  alt={p.title}
-                  className="w-full h-full object-cover"
-                />
-                <button
-                  onClick={e => { e.preventDefault(); remove(p.id); }}
-                  className="absolute top-2 right-2 w-9 h-9 rounded-full bg-white shadow flex items-center justify-center hover:scale-110 transition-transform"
-                  aria-label="Remove from wishlist"
-                >
-                  <Heart className="w-[18px] h-[18px] text-primary" fill="currentColor" />
-                </button>
-              </div>
-
-              {/* Details */}
-              <div className={gridView ? 'pt-2.5' : 'flex-1 min-w-0'}>
-                <p className="text-base font-semibold text-theme-primary truncate">{p.title}</p>
-                <p className="text-[13px] text-theme-secondary truncate mt-0.5">{p.location}</p>
-                <p className="text-base font-bold text-theme-primary mt-1.5">{p.price}</p>
-                <div className="flex items-center gap-1 mt-1">
-                  <span className="flex items-center">
-                    {[1, 2, 3, 4, 5].map(i => (
-                      <Star
-                        key={i}
-                        className={`w-3.5 h-3.5 ${i <= Math.round(p.rating) ? 'text-amber-500 fill-amber-500' : 'text-theme-muted'}`}
-                      />
-                    ))}
-                  </span>
-                  <span className="text-xs text-theme-muted">({p.reviews})</span>
-                </div>
-              </div>
-            </Link>
+              product={p}
+              liked
+              onLikeChange={() => remove(p.id)}
+            />
           ))}
         </div>
       )}

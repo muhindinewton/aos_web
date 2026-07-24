@@ -6,7 +6,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "shots": "node scripts/screenshots.mjs",
+    "shots:dark": "THEME=dark node scripts/screenshots.mjs",
+    "gallery": "node scripts/gallery.mjs",
+    "shots:all": "npm run shots && npm run shots:dark && npm run gallery",
+    "icons": "node scripts/icons.mjs",
+    "icons:export": "node scripts/export-icons.mjs && node scripts/verify-icons.mjs"
   },
   "dependencies": {
     "clsx": "^2.0.0",

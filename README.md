@@ -51,6 +51,12 @@ to read all keys from env before shipping to production.
 | `npm run build` | Production build |
 | `npm start` | Serve the production build |
 | `npm run lint` | ESLint |
+| `npm run shots:all` | **Both** theme passes + gallery — the one to use (needs a server on :3100, see below) |
+| `npm run shots` | Light theme only → `screenshots/` |
+| `npm run shots:dark` | Dark theme only → `screenshots/dark/` |
+| `npm run gallery` | Rebuild `screenshots/index.html` from whatever is on disk |
+| `npm run icons` | Regenerate favicons / app icons in `public/icons/` from the logo |
+| `npm run icons:export` | Export the used Lucide set to `design-assets/`, then verify it matches |
 
 ## 5. Screenshot harness (design reference)
 
@@ -62,14 +68,24 @@ gallery:
 # Isolated build dir so a running `next dev` can't invalidate the server mid-run
 NEXT_DIST_DIR=.next-shots npx next build
 NEXT_DIST_DIR=.next-shots npx next start -p 3100 &   # harness expects port 3100
-node scripts/screenshots.mjs                # light theme
-THEME=dark node scripts/screenshots.mjs     # dark theme → screenshots/dark/
-node scripts/gallery.mjs                    # builds screenshots/index.html
+
+npm run shots:all      # light + dark + gallery (~80 min, ~1400 captures)
 ```
 
+`shots:all` exists because the two theme passes write to **separate trees** —
+running only `npm run shots` leaves `screenshots/dark/` untouched, and the gallery
+will happily keep linking stale dark captures with no warning that half the set is
+out of date. Use the individual `shots` / `shots:dark` / `gallery` scripts only when
+you deliberately want one pass.
+
 Open `screenshots/index.html` to browse. The folder is git-ignored; zip it to share.
-Useful while developing: append `?__state=loading|error|empty` to any data screen to
-pin it in that state.
+Useful while developing:
+
+- `?__state=loading|error|empty` on any data screen pins it in that state.
+- `ONLY=<slug substring>` captures a subset, e.g. `ONLY=activity npm run shots`.
+- `VP=desktop` limits the run to one viewport while iterating.
+- A flow that can't reach its state fails the run and saves nothing, rather than
+  silently writing a plain page-load shot that looks like coverage.
 
 ## 6. Project structure
 
@@ -85,6 +101,9 @@ app/
 scripts/
   screenshots.mjs       capture harness (Puppeteer + system Chrome)
   gallery.mjs           builds screenshots/index.html
+  icons.mjs             favicon / app-icon set → public/icons/
+  export-icons.mjs      used Lucide icons + brand assets → design-assets/
+  verify-icons.mjs      asserts design-assets icons match what the app renders
 design-system.md        the written design contract
 HANDOFF.md              screen map, flows, interaction notes
 ```
